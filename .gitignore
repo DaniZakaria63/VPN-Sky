@@ -1,0 +1,49 @@
+# Built application files
+*.apk
+*.aar
+*.ap_
+*.aab
+
+# Files for the ART/Dalvik VM
+*.dex
+
+# Java class files
+*.class
+
+# Gradle
+.gradle/
+/build/
+/captures/
+
+# Local configuration file (sdk path, etc)
+/local.properties
+
+# IntelliJ / Android Studio
+*.iml
+/.idea/caches/
+/.idea/libraries/
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+
+# External native build folder
+.cxx/
+.externalNativeBuild/
+
+# Build outputs in all modules
+**/*/build/
+
+# Keystore files
+*.jks
+*.keystore
+
+# Google Services (auto-generated, contains secrets)
+**/google-services.json
+
+# Fastlane
+/fastlane/report.xml
+/fastlane/test_output
+
+# OS files
+.DS_Store

@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "VPNSky"
 include(":app")
+include(":vpn")

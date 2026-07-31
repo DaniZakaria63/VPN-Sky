@@ -47,3 +47,5 @@
 
 # OS files
 .DS_Store
+
+.commandcode/

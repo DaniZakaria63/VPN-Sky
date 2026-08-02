@@ -30,24 +30,28 @@ class WireguardManager(private val context: Context) {
         return VpnService.prepare(context) == null
     }
 
+    @Synchronized
     fun connect(config: Config): Result<Tunnel.State> = runCatching {
         val b = backend ?: throw IllegalStateException("Backend not initialized")
         val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
         b.setState(t, Tunnel.State.UP, config)
     }
 
+    @Synchronized
     fun disconnect(): Result<Tunnel.State> = runCatching {
         val b = backend ?: throw IllegalStateException("Backend not initialized")
         val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
         b.setState(t, Tunnel.State.DOWN, null)
     }
 
+    @Synchronized
     fun getState(): Tunnel.State? {
         val b = backend ?: return null
         val t = tunnel ?: return null
         return b.getState(t)
     }
 
+    @Synchronized
     fun getStatistics(): Statistics? {
         val b = backend ?: return null
         val t = tunnel ?: return null

@@ -4,4 +4,9 @@
   <component name="ProjectType">
     <option name="id" value="Android" />
   </component>
+  <component name="ReactNativePackager" nodePath="project" reactNativePackagePath="$PROJECT_DIR$/node_modules/@react-native-community/cli" workingDirectory="$PROJECT_DIR$">
+    <scripts>
+      <item value="emulator:app" />
+    </scripts>
+  </component>
 </project>

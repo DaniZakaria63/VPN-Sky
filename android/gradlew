@@ -117,6 +117,10 @@ esac
 
 
 # Determine the Java command to use to start the JVM.
+# Fallback: this machine has no system Java; use Android Studio's JBR.
+if [ -z "$JAVA_HOME" ] && [ -d "/home/dani/opt/android-studio/jbr" ] ; then
+    export JAVA_HOME="/home/dani/opt/android-studio/jbr"
+fi
 if [ -n "$JAVA_HOME" ] ; then
     if [ -x "$JAVA_HOME/jre/sh/java" ] ; then
         # IBM's JDK on AIX uses strange locations for the executables

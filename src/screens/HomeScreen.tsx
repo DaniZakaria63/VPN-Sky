@@ -1,7 +1,8 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
+  Modal,
   Pressable,
   StyleSheet,
   Text,
@@ -10,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useVpn, VpnStateKind, VpnUiState } from '../hooks/useVpn';
 import { isVpnSupported } from '../native/vpn';
-import { accentColors, AppTheme } from '../theme';
+import { AppTheme } from '../theme';
 
 interface Props {
   theme: AppTheme;
@@ -30,20 +31,6 @@ function statusLabel(state: VpnUiState): string {
       return 'Launch failed';
     default:
       return 'Ready at base';
-  }
-}
-
-function statusColor(state: VpnUiState): string {
-  switch (state.kind) {
-    case VpnStateKind.Connected:
-      return accentColors.green;
-    case VpnStateKind.Connecting:
-    case VpnStateKind.Disconnecting:
-      return accentColors.connecting;
-    case VpnStateKind.Error:
-      return accentColors.error;
-    default:
-      return '#8EA0BA';
   }
 }
 
@@ -155,6 +142,15 @@ function RocketScene({ state }: { state: VpnUiState }) {
     outputRange: ['0deg', '-360deg'],
   });
 
+  const connectionStatus =
+    state.kind === VpnStateKind.Connected
+      ? 'CONNECTED'
+      : state.kind === VpnStateKind.Connecting
+      ? 'CONNECTING'
+      : state.kind === VpnStateKind.Disconnecting
+      ? 'DISCONNECTING'
+      : 'READY';
+
   return (
     <View style={styles.space} accessibilityLabel={statusLabel(state)}>
       <View style={styles.starField} pointerEvents="none">
@@ -167,6 +163,39 @@ function RocketScene({ state }: { state: VpnUiState }) {
             style={[styles.star, { left: `${left}%`, top: `${top}%`, width: size, height: size }]}
           />
         ))}
+      </View>
+
+      <View style={styles.connectionOverlay} pointerEvents="none">
+        <View style={styles.connectionHeader}>
+          <View
+            style={[
+              styles.connectionIndicator,
+              state.kind === VpnStateKind.Connected && styles.connectionIndicatorLive,
+              state.kind === VpnStateKind.Connecting && styles.connectionIndicatorActive,
+            ]}
+          />
+          <Text style={styles.connectionStatus}>{connectionStatus}</Text>
+        </View>
+        {state.kind === VpnStateKind.Connected ? (
+          <View style={styles.connectionDetails}>
+            <View>
+              <Text style={styles.connectionLabel}>SERVER LOCATION</Text>
+              <Text style={styles.connectionValue}>Jakarta, Indonesia</Text>
+            </View>
+            <View>
+              <Text style={styles.connectionLabel}>DEVICE IP</Text>
+              <Text style={styles.connectionValue}>10.0.0.3</Text>
+            </View>
+          </View>
+        ) : (
+          <Text style={styles.connectionMessage}>
+            {state.kind === VpnStateKind.Connecting
+              ? 'Establishing secure route...'
+              : state.kind === VpnStateKind.Disconnecting
+              ? 'Closing secure route...'
+              : 'Secure route offline'}
+          </Text>
+        )}
       </View>
 
       <Animated.View
@@ -226,6 +255,7 @@ function RocketScene({ state }: { state: VpnUiState }) {
 
 export function HomeScreen({ theme: _theme }: Props) {
   const insets = useSafeAreaInsets();
+  const [aboutVisible, setAboutVisible] = useState(false);
   const { status, vpnVersion, connect, disconnect, isBusy } = useVpn();
   const connected = status.kind === VpnStateKind.Connected;
   const connectEnabled =
@@ -241,10 +271,14 @@ export function HomeScreen({ theme: _theme }: Props) {
           <Text style={styles.eyebrow}>SECURE FLIGHT CONTROL</Text>
           <Text style={styles.title}>VPNSky</Text>
         </View>
-        <View style={[styles.statusPill, { borderColor: statusColor(status) }]}>
-          <View style={[styles.statusDot, { backgroundColor: statusColor(status) }]} />
-          <Text style={styles.statusPillText}>{statusLabel(status)}</Text>
-        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Open About"
+          onPress={() => setAboutVisible(true)}
+          style={({ pressed }) => [styles.aboutButton, pressed && styles.aboutButtonPressed]}>
+          <Text style={styles.aboutButtonText}>ABOUT</Text>
+          <Text style={styles.aboutButtonArrow}>›</Text>
+        </Pressable>
       </View>
 
       <RocketScene state={status} />
@@ -299,6 +333,72 @@ export function HomeScreen({ theme: _theme }: Props) {
       <Text style={styles.version}>
         {vpnVersion ? `ENGINE ${vpnVersion}` : 'WIREGUARD FLIGHT ENGINE'}
       </Text>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={aboutVisible}
+        onRequestClose={() => setAboutVisible(false)}>
+        <Pressable style={styles.modalBackdrop} onPress={() => setAboutVisible(false)}>
+          <Pressable
+            accessibilityViewIsModal
+            onPress={event => event.stopPropagation()}
+            style={[styles.aboutPanel, { paddingBottom: Math.max(insets.bottom, 22) }]}>
+            <View style={styles.aboutPanelHeader}>
+              <View>
+                <Text style={styles.aboutEyebrow}>MISSION INFORMATION</Text>
+                <Text style={styles.aboutTitle}>About VPNSky</Text>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Close About"
+                hitSlop={10}
+                onPress={() => setAboutVisible(false)}
+                style={({ pressed }) => [styles.closeButton, pressed && styles.aboutButtonPressed]}>
+                <Text style={styles.closeButtonText}>×</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutSectionNumber}>01</Text>
+              <View style={styles.aboutSectionBody}>
+                <Text style={styles.aboutSectionTitle}>DEVELOPER</Text>
+                <Text style={styles.aboutSectionText}>
+                  VPNSky is an Android VPN client built with React Native and a native Kotlin tunnel
+                  engine.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutSectionNumber}>02</Text>
+              <View style={styles.aboutSectionBody}>
+                <Text style={styles.aboutSectionTitle}>PROTOCOL</Text>
+                <Text style={styles.aboutSectionText}>
+                  WireGuard provides modern encrypted tunneling with a compact protocol and
+                  cryptographic key-based authentication.
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.aboutSection}>
+              <Text style={styles.aboutSectionNumber}>03</Text>
+              <View style={styles.aboutSectionBody}>
+                <Text style={styles.aboutSectionTitle}>PRIVACY POLICY</Text>
+                <Text style={styles.aboutSectionText}>
+                  VPNSky does not include advertising or analytics SDKs. VPN traffic is handled by
+                  the configured WireGuard server. Connection statistics shown here remain on your
+                  device.
+                </Text>
+              </View>
+            </View>
+
+            <Text style={styles.aboutVersion}>
+              {vpnVersion ? `WireGuard engine ${vpnVersion}` : 'WireGuard flight engine'}
+            </Text>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -328,19 +428,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: -1,
   },
-  statusPill: {
-    maxWidth: '55%',
+  aboutButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    gap: 9,
     borderWidth: 1,
     borderRadius: 18,
-    paddingHorizontal: 11,
+    paddingHorizontal: 13,
     paddingVertical: 7,
     backgroundColor: 'rgba(11, 31, 54, 0.88)',
+    borderColor: '#2B7199',
   },
-  statusDot: { width: 7, height: 7, borderRadius: 4 },
-  statusPillText: { color: '#DCEAFF', fontSize: 11, fontWeight: '700', flexShrink: 1 },
+  aboutButtonPressed: { opacity: 0.55 },
+  aboutButtonText: { color: '#DCEAFF', fontSize: 10, fontWeight: '900', letterSpacing: 1.4 },
+  aboutButtonArrow: { color: '#54D6FF', fontSize: 18, lineHeight: 18, fontWeight: '500' },
   space: {
     flex: 1,
     minHeight: 300,
@@ -353,6 +454,46 @@ const styles = StyleSheet.create({
   },
   starField: StyleSheet.absoluteFill,
   star: { position: 'absolute', borderRadius: 4, backgroundColor: '#D6F3FF', opacity: 0.8 },
+  connectionOverlay: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    right: 16,
+    zIndex: 6,
+    padding: 13,
+    borderRadius: 16,
+    backgroundColor: 'rgba(5, 19, 39, 0.82)',
+    borderWidth: 1,
+    borderColor: '#1B5276',
+  },
+  connectionHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  connectionIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#71849B',
+  },
+  connectionIndicatorActive: { backgroundColor: '#FFC857' },
+  connectionIndicatorLive: { backgroundColor: '#55E39B' },
+  connectionStatus: {
+    color: '#DCEAFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+  },
+  connectionDetails: {
+    flexDirection: 'row',
+    gap: 28,
+    marginTop: 10,
+  },
+  connectionLabel: {
+    color: '#6D98BC',
+    fontSize: 8,
+    fontWeight: '800',
+    letterSpacing: 1.1,
+  },
+  connectionValue: { color: '#F2F8FF', fontSize: 13, fontWeight: '700', marginTop: 3 },
+  connectionMessage: { color: '#88A5C1', fontSize: 11, marginTop: 7 },
   rocketWrap: {
     position: 'absolute',
     zIndex: 4,
@@ -497,4 +638,71 @@ const styles = StyleSheet.create({
   buttonPressed: { opacity: 0.5, transform: [{ scale: 0.99 }] },
   buttonLabel: { color: '#04131F', fontSize: 13, fontWeight: '900', letterSpacing: 1.1 },
   version: { color: '#547597', textAlign: 'center', fontSize: 9, letterSpacing: 1.2, marginTop: 9 },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    padding: 16,
+    backgroundColor: 'rgba(1, 8, 19, 0.78)',
+  },
+  aboutPanel: {
+    borderRadius: 28,
+    paddingTop: 22,
+    paddingHorizontal: 20,
+    backgroundColor: '#0A1C32',
+    borderWidth: 1,
+    borderColor: '#24527A',
+  },
+  aboutPanelHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  aboutEyebrow: {
+    color: '#54D6FF',
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 1.6,
+  },
+  aboutTitle: { color: '#F6FAFF', fontSize: 25, fontWeight: '800', marginTop: 3 },
+  closeButton: {
+    width: 34,
+    height: 34,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 17,
+    backgroundColor: '#112E4B',
+    borderWidth: 1,
+    borderColor: '#285579',
+  },
+  closeButtonText: { color: '#CFE8FA', fontSize: 25, lineHeight: 27, fontWeight: '300' },
+  aboutSection: {
+    flexDirection: 'row',
+    gap: 14,
+    paddingVertical: 15,
+    borderTopWidth: 1,
+    borderTopColor: '#173956',
+  },
+  aboutSectionNumber: {
+    color: '#3FCBF5',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1,
+    marginTop: 1,
+  },
+  aboutSectionBody: { flex: 1 },
+  aboutSectionTitle: {
+    color: '#DDEEFF',
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.3,
+  },
+  aboutSectionText: { color: '#91ABC3', fontSize: 12, lineHeight: 18, marginTop: 5 },
+  aboutVersion: {
+    color: '#547999',
+    fontSize: 9,
+    textAlign: 'center',
+    letterSpacing: 1,
+    marginTop: 3,
+  },
 });

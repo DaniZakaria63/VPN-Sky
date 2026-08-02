@@ -1,0 +1,75 @@
+name: Build Release
+
+on:
+  push:
+    tags: ["v[1-9].*"]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode keystore
+        run: |
+          mkdir -p android/keystore
+          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > android/keystore/vpnsky.jks
+
+      - name: Set version
+        run: |
+          TAG="${{ github.ref_name }}"
+          TAG="${TAG#v}"
+          echo "APP_VERSION_NAME=$TAG" >> "$GITHUB_ENV"
+          IFS=. read -r major minor patch <<< "$TAG"
+          echo "APP_VERSION_CODE=$((major * 1000000 + minor * 1000 + patch))" >> "$GITHUB_ENV"
+
+      - name: Build signed AAB and APK
+        working-directory: android
+        run: |
+          ./gradlew bundleRelease assembleRelease \
+            -PappVersionName=$APP_VERSION_NAME \
+            -PappVersionCode=$APP_VERSION_CODE
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Upload to Google Play
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.wingsheep.vpnsky
+          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          tracks: internal
+          status: completed
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        with:
+          tag: ${{ github.ref_name }}
+          commit: ${{ github.sha }}
+          name: Release ${{ env.APP_VERSION_NAME }}
+          body: |
+            ## VPNSky ${{ env.APP_VERSION_NAME }}
+          artifacts: app/build/outputs/apk/release/app-release.apk
+          generateReleaseNotes: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-artifacts
+          path: app/build/outputs/apk/release/app-release.apk

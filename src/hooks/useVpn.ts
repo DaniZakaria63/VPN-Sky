@@ -13,13 +13,22 @@ import {
   VpnStatistics,
 } from '../native/vpn';
 
+export enum VpnStateKind {
+  Disconnected = 'Disconnected',
+  Connecting = 'Connecting',
+  Disconnecting = 'Disconnecting',
+  Connected = 'Connected',
+  PermissionRequired = 'PermissionRequired',
+  Error = 'Error',
+}
+
 export type VpnUiState =
-  | { kind: 'Disconnected' }
-  | { kind: 'Connecting' }
-  | { kind: 'Disconnecting' }
-  | { kind: 'Connected'; rxBytes: number; txBytes: number }
-  | { kind: 'PermissionRequired' }
-  | { kind: 'Error'; message: string; reason?: string };
+  | { kind: VpnStateKind.Disconnected }
+  | { kind: VpnStateKind.Connecting }
+  | { kind: VpnStateKind.Disconnecting }
+  | { kind: VpnStateKind.Connected; rxBytes: number; txBytes: number }
+  | { kind: VpnStateKind.PermissionRequired }
+  | { kind: VpnStateKind.Error; message: string; reason?: string };
 
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms));
 
@@ -32,7 +41,7 @@ export interface VpnController {
 }
 
 export function useVpn(): VpnController {
-  const [status, setStatus] = useState<VpnUiState>({ kind: 'Disconnected' });
+  const [status, setStatus] = useState<VpnUiState>({ kind: VpnStateKind.Disconnected });
   const [vpnVersion, setVpnVersion] = useState<string | null>(null);
   const connectingRef = useRef(false);
   const disconnectingRef = useRef(false);
@@ -40,8 +49,8 @@ export function useVpn(): VpnController {
 
   const applyStats = useCallback((s: VpnStatistics) => {
     setStatus(prev =>
-      prev.kind === 'Connected'
-        ? { kind: 'Connected', rxBytes: s.rxBytes, txBytes: s.txBytes }
+      prev.kind === VpnStateKind.Connected
+        ? { kind: VpnStateKind.Connected, rxBytes: s.rxBytes, txBytes: s.txBytes }
         : prev,
     );
   }, []);
@@ -68,10 +77,10 @@ export function useVpn(): VpnController {
   const syncNativeState = useCallback(async () => {
     const state = await getState();
     if (state === 'Connected') {
-      setStatus({ kind: 'Connected', rxBytes: 0, txBytes: 0 });
+      setStatus({ kind: VpnStateKind.Connected, rxBytes: 0, txBytes: 0 });
       startStatsPolling();
     } else {
-      setStatus({ kind: 'Disconnected' });
+      setStatus({ kind: VpnStateKind.Disconnected });
       stopStatsPolling();
     }
   }, [startStatsPolling, stopStatsPolling]);
@@ -87,7 +96,7 @@ export function useVpn(): VpnController {
       } catch (e) {
         if (!disposed) {
           setStatus({
-            kind: 'Error',
+            kind: VpnStateKind.Error,
             message: (e as { message?: string }).message ?? 'VPN initialization failed',
           });
         }
@@ -99,16 +108,16 @@ export function useVpn(): VpnController {
         connectingRef.current = false;
         disconnectingRef.current = false;
         setStatus(prev => ({
-          kind: 'Connected',
-          rxBytes: prev.kind === 'Connected' ? prev.rxBytes : 0,
-          txBytes: prev.kind === 'Connected' ? prev.txBytes : 0,
+          kind: VpnStateKind.Connected,
+          rxBytes: prev.kind === VpnStateKind.Connected ? prev.rxBytes : 0,
+          txBytes: prev.kind === VpnStateKind.Connected ? prev.txBytes : 0,
         }));
         startStatsPolling();
       } else if (state === 'Disconnected') {
         connectingRef.current = false;
         disconnectingRef.current = false;
         stopStatsPolling();
-        setStatus({ kind: 'Disconnected' });
+        setStatus({ kind: VpnStateKind.Disconnected });
       }
     });
 
@@ -127,11 +136,11 @@ export function useVpn(): VpnController {
 
     if (!isVpnSupported) {
       connectingRef.current = false;
-      setStatus({ kind: 'Error', message: 'WireGuard is unavailable on this build.' });
+      setStatus({ kind: VpnStateKind.Error, message: 'WireGuard is unavailable on this build.' });
       return;
     }
 
-    setStatus({ kind: 'Connecting' });
+    setStatus({ kind: VpnStateKind.Connecting });
 
     let conf: string | null = null;
     try {
@@ -141,25 +150,25 @@ export function useVpn(): VpnController {
     }
     if (!conf) {
       connectingRef.current = false;
-      setStatus({ kind: 'Error', message: 'No VPN config found. Missing client.conf in app assets.' });
+      setStatus({ kind: VpnStateKind.Error, message: 'No VPN config found. Missing client.conf in app assets.' });
       return;
     }
 
     try {
       if (!(await isVpnAuthorized())) {
-        setStatus({ kind: 'PermissionRequired' });
+        setStatus({ kind: VpnStateKind.PermissionRequired });
         const granted = await requestVpnPermission();
         if (!granted) {
           connectingRef.current = false;
-          setStatus({ kind: 'Error', message: 'VPN permission was not granted.' });
+          setStatus({ kind: VpnStateKind.Error, message: 'VPN permission was not granted.' });
           return;
         }
-        setStatus({ kind: 'Connecting' });
+        setStatus({ kind: VpnStateKind.Connecting });
       }
     } catch (e) {
       connectingRef.current = false;
       setStatus({
-        kind: 'Error',
+        kind: VpnStateKind.Error,
         message: (e as { message?: string }).message ?? 'VPN permission request failed',
       });
       return;
@@ -183,12 +192,12 @@ export function useVpn(): VpnController {
     if (lastError) {
       const err = lastError as { code?: string; message?: string };
       setStatus({
-        kind: 'Error',
+        kind: VpnStateKind.Error,
         message: err.message ?? 'Connection failed',
         reason: err.code,
       });
     } else {
-      setStatus({ kind: 'Connected', rxBytes: 0, txBytes: 0 });
+      setStatus({ kind: VpnStateKind.Connected, rxBytes: 0, txBytes: 0 });
       startStatsPolling();
     }
   }, [startStatsPolling]);
@@ -196,11 +205,11 @@ export function useVpn(): VpnController {
   const disconnect = useCallback(async () => {
     if (disconnectingRef.current) return;
     disconnectingRef.current = true;
-    setStatus({ kind: 'Disconnecting' });
+    setStatus({ kind: VpnStateKind.Disconnecting });
     if (!isVpnSupported) {
       stopStatsPolling();
       disconnectingRef.current = false;
-      setStatus({ kind: 'Disconnected' });
+      setStatus({ kind: VpnStateKind.Disconnected });
       return;
     }
     try {
@@ -208,14 +217,14 @@ export function useVpn(): VpnController {
     } catch (e) {
       disconnectingRef.current = false;
       setStatus({
-        kind: 'Error',
+        kind: VpnStateKind.Error,
         message: (e as { message?: string }).message ?? 'Disconnect failed',
       });
       return;
     }
     stopStatsPolling();
     disconnectingRef.current = false;
-    setStatus({ kind: 'Disconnected' });
+    setStatus({ kind: VpnStateKind.Disconnected });
   }, [stopStatsPolling]);
 
   return {
@@ -224,8 +233,8 @@ export function useVpn(): VpnController {
     connect,
     disconnect,
     isBusy:
-      status.kind === 'Connecting' ||
-      status.kind === 'Disconnecting' ||
-      status.kind === 'PermissionRequired',
+      status.kind === VpnStateKind.Connecting ||
+      status.kind === VpnStateKind.Disconnecting ||
+      status.kind === VpnStateKind.PermissionRequired,
   };
 }

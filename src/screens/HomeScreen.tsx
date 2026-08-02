@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useVpn, VpnUiState } from '../hooks/useVpn';
+import { useVpn, VpnStateKind, VpnUiState } from '../hooks/useVpn';
 import { isVpnSupported } from '../native/vpn';
 import { accentColors, AppTheme } from '../theme';
 
@@ -18,15 +18,15 @@ interface Props {
 
 function statusLabel(state: VpnUiState): string {
   switch (state.kind) {
-    case 'Connected':
+    case VpnStateKind.Connected:
       return 'Orbit secured';
-    case 'Connecting':
+    case VpnStateKind.Connecting:
       return 'Launching secure tunnel';
-    case 'Disconnecting':
+    case VpnStateKind.Disconnecting:
       return 'Returning to base';
-    case 'PermissionRequired':
+    case VpnStateKind.PermissionRequired:
       return 'Launch clearance required';
-    case 'Error':
+    case VpnStateKind.Error:
       return 'Launch failed';
     default:
       return 'Ready at base';
@@ -35,12 +35,12 @@ function statusLabel(state: VpnUiState): string {
 
 function statusColor(state: VpnUiState): string {
   switch (state.kind) {
-    case 'Connected':
+    case VpnStateKind.Connected:
       return accentColors.green;
-    case 'Connecting':
-    case 'Disconnecting':
+    case VpnStateKind.Connecting:
+    case VpnStateKind.Disconnecting:
       return accentColors.connecting;
-    case 'Error':
+    case VpnStateKind.Error:
       return accentColors.error;
     default:
       return '#8EA0BA';
@@ -57,108 +57,103 @@ function formatBytes(bytes: number): string {
 }
 
 function RocketScene({ state }: { state: VpnUiState }) {
-  const journey = useRef(new Animated.Value(0)).current;
-  const bob = useRef(new Animated.Value(0)).current;
+  // motion: 0 = grounded & zoomed-in, 1 = in space & zoomed-out.
+  const motion = useRef(new Animated.Value(0)).current;
+  const heading = useRef(new Animated.Value(0)).current;
   const earthSpin = useRef(new Animated.Value(0)).current;
   const flame = useRef(new Animated.Value(0.65)).current;
   const burn = useRef(new Animated.Value(0)).current;
 
+  const launching = state.kind === VpnStateKind.Connecting;
+  const flying = state.kind === VpnStateKind.Connected;
+  const blasting = launching || flying || state.kind === VpnStateKind.Disconnecting;
+  const grounded = !launching && !flying && state.kind !== VpnStateKind.Disconnecting;
+
+  // Advance the rocket between grounded/zoomed-in and flying/zoomed-out.
   useEffect(() => {
-    const destination =
-      state.kind === 'Connected' || state.kind === 'Disconnecting' ? 1 : 0;
-    const duration = state.kind === 'Disconnecting' ? 1500 : 1800;
-    Animated.timing(journey, {
-      toValue: destination,
-      duration,
+    // toValue 1 = flying/zoomed-out (Connecting climbs, Connected stays up).
+    // Disconnecting, idle, error, permission all return to base.
+    const goUp =
+      state.kind === VpnStateKind.Connecting || state.kind === VpnStateKind.Connected;
+    Animated.timing(motion, {
+      toValue: goUp ? 1 : 0,
+      duration:
+        state.kind === VpnStateKind.Connecting
+          ? 2100
+          : state.kind === VpnStateKind.Disconnecting
+          ? 1700
+          : 1500,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: true,
     }).start();
-  }, [journey, state.kind]);
+  }, [motion, state.kind]);
 
+  // Stay upright during launch, then turn into horizontal flight once connected.
   useEffect(() => {
-    const bobLoop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(bob, {
-          toValue: -8,
-          duration: 1200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-        Animated.timing(bob, {
-          toValue: 8,
-          duration: 1200,
-          easing: Easing.inOut(Easing.sin),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    if (state.kind === 'Connected') {
-      bobLoop.start();
-    } else {
-      bob.stopAnimation();
-      bob.setValue(0);
+    Animated.timing(heading, {
+      toValue: flying ? 1 : 0,
+      duration: flying ? 900 : 550,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+  }, [flying, heading]);
+
+  // Earth spins only during connected flight. Keep base orientation stable while idle.
+  useEffect(() => {
+    if (!flying) {
+      earthSpin.stopAnimation();
+      earthSpin.setValue(0);
+      return;
     }
-    return () => bobLoop.stop();
-  }, [bob, state.kind]);
-
-  useEffect(() => {
     const earthLoop = Animated.loop(
       Animated.timing(earthSpin, {
         toValue: 1,
-        duration: 12000,
+        duration: 7000,
         easing: Easing.linear,
         useNativeDriver: true,
       }),
     );
     earthLoop.start();
     return () => earthLoop.stop();
-  }, [earthSpin]);
+  }, [earthSpin, flying]);
 
+  // Thrust plume flickers while consuming fuel; fades out when grounded.
   useEffect(() => {
     const flameLoop = Animated.loop(
       Animated.sequence([
-        Animated.timing(flame, {
-          toValue: 1,
-          duration: 130,
-          useNativeDriver: true,
-        }),
-        Animated.timing(flame, {
-          toValue: 0.55,
-          duration: 110,
-          useNativeDriver: true,
-        }),
+        Animated.timing(flame, { toValue: 1, duration: 130, useNativeDriver: true }),
+        Animated.timing(flame, { toValue: 0.5, duration: 110, useNativeDriver: true }),
       ]),
     );
-    if (state.kind === 'Connecting' || state.kind === 'Disconnecting') {
+    if (blasting) {
       flameLoop.start();
     } else {
       flame.stopAnimation();
       flame.setValue(0.65);
     }
     return () => flameLoop.stop();
-  }, [flame, state.kind]);
+  }, [flame, blasting]);
 
   useEffect(() => {
     Animated.timing(burn, {
-      toValue: state.kind === 'Error' ? 1 : 0,
+      toValue: state.kind === VpnStateKind.Error ? 1 : 0,
       duration: 450,
       useNativeDriver: true,
     }).start();
   }, [burn, state.kind]);
 
-  const rocketTranslateY = Animated.add(
-    journey.interpolate({ inputRange: [0, 1], outputRange: [72, -100] }),
-    bob,
-  );
-  const rocketRotate = journey.interpolate({
-    inputRange: [0, 0.45, 1],
-    outputRange: ['0deg', '-5deg', '3deg'],
+  // Camera + ramp: base is a close-up; launch pulls back to normal scene size.
+  const zoom = motion.interpolate({ inputRange: [0, 1], outputRange: [1.38, 1] });
+  // Rocket rests on Earth's upper rim at base, then climbs and turns horizontal.
+  const rocketY = motion.interpolate({ inputRange: [0, 1], outputRange: [-24, -112] });
+  const rocketRotate = heading.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '90deg'],
   });
   const earthRotation = earthSpin.interpolate({
     inputRange: [0, 1],
-    outputRange: ['0deg', '360deg'],
+    outputRange: ['0deg', '-360deg'],
   });
-  const showFlame = state.kind === 'Connecting' || state.kind === 'Disconnecting';
 
   return (
     <View style={styles.space} accessibilityLabel={statusLabel(state)}>
@@ -177,7 +172,13 @@ function RocketScene({ state }: { state: VpnUiState }) {
       <Animated.View
         style={[
           styles.rocketWrap,
-          { transform: [{ translateY: rocketTranslateY }, { rotate: rocketRotate }] },
+          {
+            transform: [
+              { scale: zoom },
+              { translateY: rocketY },
+              { rotate: rocketRotate },
+            ],
+          },
         ]}>
         <Animated.View
           style={[styles.burnCloud, { opacity: burn, transform: [{ scale: burn }] }]}
@@ -190,20 +191,35 @@ function RocketScene({ state }: { state: VpnUiState }) {
           <View style={[styles.fin, styles.finLeft]} />
           <View style={[styles.fin, styles.finRight]} />
         </View>
-        {showFlame ? (
+        {blasting && !grounded ? (
           <Animated.View
-            style={[styles.flame, { transform: [{ scaleY: flame }] }]}
-          />
+            style={[
+              styles.flame,
+              launching && styles.flameLaunching,
+              flying && styles.flameFlying,
+              { transform: [{ scaleY: flame }] },
+            ]}>
+            <View style={styles.flameCore} />
+          </Animated.View>
         ) : null}
       </Animated.View>
 
       <View style={styles.baseGlow} />
-      <Animated.View style={[styles.earth, { transform: [{ rotate: earthRotation }] }]}>
+      <Animated.View
+        style={[
+          styles.earth,
+          { transform: [{ scale: zoom }, { rotate: earthRotation }] },
+        ]}>
         <View style={[styles.land, styles.landOne]} />
         <View style={[styles.land, styles.landTwo]} />
         <View style={[styles.land, styles.landThree]} />
       </Animated.View>
-      <View style={styles.earthShade} />
+      <Animated.View
+        style={[
+          styles.earthShade,
+          { transform: [{ scale: zoom }] },
+        ]}
+      />
     </View>
   );
 }
@@ -211,12 +227,12 @@ function RocketScene({ state }: { state: VpnUiState }) {
 export function HomeScreen({ theme: _theme }: Props) {
   const insets = useSafeAreaInsets();
   const { status, vpnVersion, connect, disconnect, isBusy } = useVpn();
-  const connected = status.kind === 'Connected';
+  const connected = status.kind === VpnStateKind.Connected;
   const connectEnabled =
     isVpnSupported &&
-    (status.kind === 'Disconnected' ||
-      status.kind === 'Error' ||
-      status.kind === 'PermissionRequired');
+    (status.kind === VpnStateKind.Disconnected ||
+      status.kind === VpnStateKind.Error ||
+      status.kind === VpnStateKind.PermissionRequired);
 
   return (
     <View style={[styles.container, { paddingBottom: insets.bottom + 14 }]}>
@@ -249,7 +265,7 @@ export function HomeScreen({ theme: _theme }: Props) {
         </View>
       </View>
 
-      {status.kind === 'Error' ? (
+      {status.kind === VpnStateKind.Error ? (
         <Text style={styles.errorDetail} numberOfLines={2}>
           {status.message}{status.reason ? ` (${status.reason})` : ''}
         </Text>
@@ -266,11 +282,11 @@ export function HomeScreen({ theme: _theme }: Props) {
           (pressed || isBusy || (!connected && !connectEnabled)) && styles.buttonPressed,
         ]}>
         <Text style={styles.buttonLabel}>
-          {status.kind === 'PermissionRequired'
+          {status.kind === VpnStateKind.PermissionRequired
             ? 'GRANT CLEARANCE'
-            : status.kind === 'Connecting'
+            : status.kind === VpnStateKind.Connecting
             ? 'LAUNCHING...'
-            : status.kind === 'Disconnecting'
+            : status.kind === VpnStateKind.Disconnecting
             ? 'RETURNING...'
             : connected
             ? 'RETURN TO BASE'
@@ -340,7 +356,8 @@ const styles = StyleSheet.create({
   rocketWrap: {
     position: 'absolute',
     zIndex: 4,
-    top: '43%',
+    // Align visible rocket base with earth top; wrapper has 33 px unused space below flame.
+    bottom: 109,
     alignSelf: 'center',
     width: 58,
     height: 112,
@@ -383,6 +400,27 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFB31A',
     borderTopWidth: 8,
     borderTopColor: '#FF6138',
+  },
+  flameLaunching: {
+    height: 42,
+    width: 19,
+    marginTop: -4,
+    borderTopWidth: 10,
+  },
+  flameFlying: {
+    height: 20,
+    width: 18,
+    marginTop: 2,
+    borderTopWidth: 3,
+  },
+  flameCore: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: 2,
+    width: 7,
+    height: '78%',
+    borderRadius: 6,
+    backgroundColor: '#FFF3A1',
   },
   burnCloud: {
     position: 'absolute',

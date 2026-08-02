@@ -1,70 +1,69 @@
 # AGENTS.md — VPNSky
 
-Android VPN client app (Kotlin, Jetpack Compose). Multi-module Gradle project.
+Android VPN client app rebuilt as a **React Native** project. WireGuard tunnel runs in a thin Kotlin native module (Android only); all UI is TypeScript/React Native.
 
-## Modules
+## Layout
 
-| Module | Purpose | Entry point |
-|--------|---------|-------------|
-| `:app` | Main application | `com.wingsheep.vpnsky.MainActivity` |
-| `:vpn` | VPN library (WireGuard integration) | `com.wingsheep.vpn.WireguardManager` |
+| Path | Purpose |
+|------|---------|
+| `App.tsx` | RN app root (entry `index.js`, component name `VPNSky`) |
+| `src/screens/HomeScreen.tsx` | VPN screen: status, connect/disconnect, stats |
+| `src/hooks/useVpn.ts` | state machine mirroring the old `VpnViewModel` |
+| `src/native/vpn.ts` | bridge to native module `VpnConnectManager` |
+| `src/theme.ts` | Material palette (ported from Compose `Color.kt`/`Theme.kt`) |
+| `android/app/.../vpn/` | **Android-only native module**: `VpnSkyVpnModule`, `WireguardManager`, `VpnConfig`, `WireguardTunnel`, `VpnPackage` |
+| `ios/` | iOS shell (no VPN; UI shows "unsupported", `isVpnSupported === false`) |
+
+## Stack
+
+- React Native `0.86.2`, React `19.2`, TypeScript, new architecture (`newArchEnabled=true`)
+- Native module is a **legacy `ReactContextBaseJavaModule`** — works via interop layer with TurboModules, no codegen spec needed
+- WireGuard: `com.wireguard.android:tunnel:1.0.20260102` (Maven Central), core library desugaring enabled (`desugar_jdk_libs:2.1.5`)
+- Kotlin 2.1.20, AGP 8.12, Gradle 9.3.1 (root `android/`)
+- minSdk 24, targetSdk 36, JDK 17 target; namespace/applicationId `com.wingsheep.vpnsky`
 
 ## Build
 
 ```bash
 # JDK: no system Java. Use Android Studio JBR:
 export JAVA_HOME=/home/dani/opt/android-studio/jbr
+export ANDROID_HOME=/home/dani/Android/Sdk
 
-# Compile
-./gradlew :vpn:compileDebugKotlin     # vpn module
-./gradlew :app:compileDebugKotlin     # app module
-./gradlew compileDebugKotlin          # both
+cd android
 
-# Run tests
-./gradlew testDebugUnitTest
-
-# Assemble APK
-./gradlew assembleDebug
+./gradlew :app:assembleDebug       # APK at android/app/build/outputs/apk/debug/
+./gradlew :app:compileDebugKotlin  # quick native-compile check
 ```
 
-## Known Issues
+JS checks (from repo root):
 
-- **No system Java**: `JAVA_HOME` must point to a JDK (Android Studio JBR at `/home/dani/opt/android-studio/jbr` works).
-- **Configuration cache**: `org.gradle.configuration-cache=true` in `gradle.properties`. If stale, run `./gradlew --no-configuration-cache <task>`.
-- **AGP 9 + KSP workaround**: `android.disallowKotlinSourceSets=false` in `gradle.properties` (required for KSP with AGP 9 built-in Kotlin).
+```bash
+npx tsc --noEmit     # typecheck
+npm run lint         # eslint
+npm test             # jest
+npm run android      # CLI: build+install to device/emulator
+```
 
-## Architecture
+## Native module API (`VpnConnectManager`)
 
-- **Clean architecture**: `:vpn` is a library module with no Android framework dependencies beyond `VpnService`. App layer (`:app`) depends on `:vpn`.
-- **Dependency injection**: Hilt (`com.google.dagger:hilt.android:2.60`) with KSP (`2.2.10-2.0.2`). `@HiltAndroidApp` on `VpnSkyApplication`, `@AndroidEntryPoint` on activities, `@HiltViewModel` on ViewModels, `@Singleton @Inject` on injectable classes.
-- **State management**: Use Kotlin `StateFlow` / `LiveData` for reactive UI. WireGuard tunnel state flows through `WireguardManager` → ViewModel → Compose UI.
+`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `loadClientConf` (reads `android/app/src/main/assets/client.conf`). Emits `onVpnStateChange` via `NativeEventEmitter`.
 
-## WireGuard Integration
+Connection flow (JS, `useVpn.ts`):
+1. `loadClientConf()` — config file content from app assets
+2. `isVpnAuthorized()` → if false `requestVpnPermission()` (system dialog)
+3. `connect(conf)` retried 3× with 500 ms pause; native parses `.conf` → `VpnConfig.toWireguardConfig()` → `GoBackend.setState(UP)`
 
-Library: `com.wireguard.android:tunnel:1.0.20260102` (Maven Central, official WireGuard Android tunnel library)
+## Native lifecycle notes
 
-Key classes in `:vpn` module:
-- `WireguardManager` — wraps `GoBackend`, manages connect/disconnect lifecycle
-- `WireguardTunnel` — implements `com.wireguard.android.backend.Tunnel`
-- `VpnConfig` — data class; `toWireguardConfig()` converts to library `Config`; `parseFromConf()` parses `.conf` files
-- `VpnState` — sealed class: `Disconnected`, `Connecting`, `Connected`, `Error`
-
-Required manifest entries:
-- `GoBackend$VpnService` declared in `vpn/AndroidManifest.xml` with `BIND_VPN_SERVICE` permission
-- `INTERNET` + `ACCESS_NETWORK_STATE` permissions in `app/AndroidManifest.xml`
-
-Connection flow:
-1. Call `WireguardManager.initialize()` (loads `wg-go` native lib)
-2. Call `isVpnAuthorized()` → if false, launch `VpnService.prepare()` intent
-3. Call `connect(config)` on background thread (blocks until tunnel established)
-4. `GoBackend.setState()` internally calls `VpnService.prepare()`, builds TUN interface, calls native `wgTurnOn()`
+- `WireguardManager` runs GoBackend on a single-thread executor (must not block JS thread; `setState` blocks until tunnel up).
+- `GoBackend$VpnService` declared in `android/app/src/main/AndroidManifest.xml` with `BIND_VPN_SERVICE`.
+- Tunnel lib enum gained `TUNNEL_STATE.TOGGLE` — keep `when` expressions exhaustive (add else/`TOGGLE`) if the lib bumps.
+- No Hilt/Dagger in the RN port — plain constructor wiring in `VpnPackage`.
+- Add new native modules by appending to `PackageList(this).packages` in `MainApplication.kt`.
 
 ## Conventions
 
-- Kotlin DSL Gradle (`build.gradle.kts`), version catalog (`gradle/libs.versions.toml`)
-- Kotlin 2.2.10, AGP 9.3.1, Compose BOM 2026.02.01
-- Hilt 2.60, KSP 2.2.10-2.0.2
-- minSdk 24, targetSdk 36, compileSdk 37.1
-- Java 17 source/target compatibility with desugaring (`isCoreLibraryDesugaringEnabled = true`)
-- Kotlin code style: `official` (`kotlin.code.style=official` in `gradle.properties`)
-- Git branch: `feat/vpn` for VPN work; `main` for stable
+- TypeScript strict (RN `@react-native/typescript-config`), ESLint RN preset + Prettier.
+- State typed as discriminated unions (`VpnUiState`): `Disconnected | Connecting | Connected | PermissionRequired | Error`.
+- iOS shows a "VPN requires Android" notice — do not add fake VPN tunnels there.
+- Git branches: `feat/vpn` for active work, `main` stable.

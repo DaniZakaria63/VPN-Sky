@@ -46,10 +46,12 @@ npm run android      # CLI: build+install to device/emulator
 
 ## Native module API (`VpnConnectManager`)
 
-`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `loadClientConf` (reads `android/app/src/main/assets/client.conf`). Emits `onVpnStateChange` via `NativeEventEmitter`.
+`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `ensureClientKey` (generates/loads a persistent Curve25519 keypair from app-private `vpnsky_client.key`; private key never ships), `rotateClientKey` (rotation helper; deletes persisted key), `generateKeyPair` (one-shot ephemeral, for diagnostics). Emits `onVpnStateChange` via `NativeEventEmitter`.
 
-Connection flow (JS, `useVpn.ts`):
-1. `loadClientConf()` — config file content from app assets
+`@react-native-firebase/remote-config` is initialized via `src/config.ts`, which fetches WireGuard server params (`vpn_address`, `vpn_dns`, `vpn_allowed_ips`, `vpn_server_public_key`, `vpn_endpoint`, `vpn_persistent_keepalive`). Defaults are embedded for offline boots; no secret material (no WG private keys, no PSK) is ever shipped.
+
+Connection flow (JS, `useVpn.ts` + `src/config.ts`):
+1. `buildVpnConfig()` → fetches Remote Config, then loads the stable per-install client key via `ensureClientKey()`, returning a `.conf` with `[Interface]/PrivateKey` assembled at runtime from a key held in app-private storage.
 2. `isVpnAuthorized()` → if false `requestVpnPermission()` (system dialog)
 3. `connect(conf)` retried 3× with 500 ms pause; native parses `.conf` → `VpnConfig.toWireguardConfig()` → `GoBackend.setState(UP)`
 

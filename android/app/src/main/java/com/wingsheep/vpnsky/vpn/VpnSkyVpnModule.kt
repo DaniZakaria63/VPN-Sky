@@ -1,6 +1,9 @@
 package com.wingsheep.vpnsky.vpn
 
 import android.content.Intent
+import java.io.File
+import com.wireguard.crypto.Key
+import com.wireguard.crypto.KeyPair
 import android.net.VpnService
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Arguments
@@ -51,6 +54,56 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getVersion(promise: Promise) {
         promise.resolve(vpnManager.getVersion() ?: "")
+    }
+
+    @ReactMethod
+    fun generateKeyPair(promise: Promise) {
+        val pair = VpnConfig.generateKeyPair()
+        resolveKeyPair(promise, pair.first, pair.second)
+    }
+
+    @ReactMethod
+    fun ensureClientKey(promise: Promise) {
+        try {
+            val ctx = reactContext.applicationContext
+            val keyFile = File(ctx.filesDir, "vpnsky_client.key")
+            if (keyFile.exists()) {
+                val lines = keyFile.readLines()
+                val priv = lines[0]
+                // Verify the stored pubkey matches the privkey; regenerate if corrupted.
+                val pub = Key.fromBase64(priv).let { KeyPair(it).publicKey.toBase64() }
+                resolveKeyPair(promise, priv, pub)
+            } else {
+                val pair = VpnConfig.generateKeyPair()
+                keyFile.writeText("${pair.first}\n${pair.second}\n")
+                resolveKeyPair(promise, pair.first, pair.second)
+            }
+        } catch (e: Exception) {
+            promise.reject("VPN_KEY_ERROR", e.message ?: "Failed to load client key", e)
+        }
+    }
+
+    @ReactMethod
+    fun rotateClientKey(promise: Promise) {
+        try {
+            reactContext.applicationContext
+                .let { File(it.filesDir, "vpnsky_client.key") }
+                .delete()
+            ensureClientKey(promise)
+        } catch (e: Exception) {
+            promise.reject("VPN_KEY_ERROR", e.message ?: "Failed to rotate client key", e)
+        }
+    }
+
+    private fun resolveKeyPair(promise: Promise, privateKey: String, publicKey: String) {
+        if (privateKey.isEmpty() || publicKey.isEmpty()) {
+            promise.reject("VPN_KEY_ERROR", "Generated invalid key pair")
+            return
+        }
+        val map: WritableMap = Arguments.createMap()
+        map.putString("privateKey", privateKey)
+        map.putString("publicKey", publicKey)
+        promise.resolve(map)
     }
 
     @ReactMethod
@@ -130,16 +183,6 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
         map.putDouble("rxBytes", stats.totalRx().toDouble())
         map.putDouble("txBytes", stats.totalTx().toDouble())
         promise.resolve(map)
-    }
-
-    @ReactMethod
-    fun loadClientConf(promise: Promise) {
-        runCatching {
-            reactContext.assets.open("client.conf").bufferedReader().use { it.readText() }
-        }.onSuccess { promise.resolve(it) }
-            .onFailure {
-                promise.reject("VPN_NO_CONF", "No client.conf found in app assets", it)
-            }
     }
 
     @ReactMethod

@@ -16,6 +16,7 @@ import {
 export type VpnUiState =
   | { kind: 'Disconnected' }
   | { kind: 'Connecting' }
+  | { kind: 'Disconnecting' }
   | { kind: 'Connected'; rxBytes: number; txBytes: number }
   | { kind: 'PermissionRequired' }
   | { kind: 'Error'; message: string; reason?: string };
@@ -34,6 +35,7 @@ export function useVpn(): VpnController {
   const [status, setStatus] = useState<VpnUiState>({ kind: 'Disconnected' });
   const [vpnVersion, setVpnVersion] = useState<string | null>(null);
   const connectingRef = useRef(false);
+  const disconnectingRef = useRef(false);
   const statsTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const applyStats = useCallback((s: VpnStatistics) => {
@@ -54,9 +56,11 @@ export function useVpn(): VpnController {
   const startStatsPolling = useCallback(() => {
     stopStatsPolling();
     statsTimerRef.current = setInterval(async () => {
-      const stats = await getStatistics();
-      if (stats) {
-        applyStats(stats);
+      try {
+        const stats = await getStatistics();
+        if (stats) applyStats(stats);
+      } catch {
+        // Tunnel state events remain authoritative when statistics are unavailable.
       }
     }, 2000);
   }, [applyStats, stopStatsPolling]);
@@ -76,20 +80,24 @@ export function useVpn(): VpnController {
     let disposed = false;
 
     (async () => {
-      const version = await getVersion();
-      if (!disposed) {
-        setVpnVersion(version);
-      }
-      if (isVpnSupported) {
-        syncNativeState();
-      } else {
-        setStatus({ kind: 'Disconnected' });
+      try {
+        const version = await getVersion();
+        if (!disposed) setVpnVersion(version);
+        if (isVpnSupported) await syncNativeState();
+      } catch (e) {
+        if (!disposed) {
+          setStatus({
+            kind: 'Error',
+            message: (e as { message?: string }).message ?? 'VPN initialization failed',
+          });
+        }
       }
     })();
 
     const unsubscribe = onVpnStateChange(state => {
       if (state === 'Connected') {
         connectingRef.current = false;
+        disconnectingRef.current = false;
         setStatus(prev => ({
           kind: 'Connected',
           rxBytes: prev.kind === 'Connected' ? prev.rxBytes : 0,
@@ -98,6 +106,7 @@ export function useVpn(): VpnController {
         startStatsPolling();
       } else if (state === 'Disconnected') {
         connectingRef.current = false;
+        disconnectingRef.current = false;
         stopStatsPolling();
         setStatus({ kind: 'Disconnected' });
       }
@@ -117,10 +126,8 @@ export function useVpn(): VpnController {
     connectingRef.current = true;
 
     if (!isVpnSupported) {
-      setStatus({ kind: 'Connecting' });
-      await sleep(1200);
       connectingRef.current = false;
-      setStatus({ kind: 'Connected', rxBytes: 0, txBytes: 0 });
+      setStatus({ kind: 'Error', message: 'WireGuard is unavailable on this build.' });
       return;
     }
 
@@ -138,14 +145,24 @@ export function useVpn(): VpnController {
       return;
     }
 
-    if (!(await isVpnAuthorized())) {
-      setStatus({ kind: 'PermissionRequired' });
-      const granted = await requestVpnPermission();
-      if (!granted) {
-        connectingRef.current = false;
-        setStatus({ kind: 'Error', message: 'VPN permission was not granted.' });
-        return;
+    try {
+      if (!(await isVpnAuthorized())) {
+        setStatus({ kind: 'PermissionRequired' });
+        const granted = await requestVpnPermission();
+        if (!granted) {
+          connectingRef.current = false;
+          setStatus({ kind: 'Error', message: 'VPN permission was not granted.' });
+          return;
+        }
+        setStatus({ kind: 'Connecting' });
       }
+    } catch (e) {
+      connectingRef.current = false;
+      setStatus({
+        kind: 'Error',
+        message: (e as { message?: string }).message ?? 'VPN permission request failed',
+      });
+      return;
     }
 
     let lastError: unknown = null;
@@ -177,14 +194,19 @@ export function useVpn(): VpnController {
   }, [startStatsPolling]);
 
   const disconnect = useCallback(async () => {
+    if (disconnectingRef.current) return;
+    disconnectingRef.current = true;
+    setStatus({ kind: 'Disconnecting' });
     if (!isVpnSupported) {
       stopStatsPolling();
+      disconnectingRef.current = false;
       setStatus({ kind: 'Disconnected' });
       return;
     }
     try {
       await nativeDisconnect();
     } catch (e) {
+      disconnectingRef.current = false;
       setStatus({
         kind: 'Error',
         message: (e as { message?: string }).message ?? 'Disconnect failed',
@@ -192,6 +214,7 @@ export function useVpn(): VpnController {
       return;
     }
     stopStatsPolling();
+    disconnectingRef.current = false;
     setStatus({ kind: 'Disconnected' });
   }, [stopStatsPolling]);
 
@@ -200,6 +223,9 @@ export function useVpn(): VpnController {
     vpnVersion,
     connect,
     disconnect,
-    isBusy: status.kind === 'Connecting',
+    isBusy:
+      status.kind === 'Connecting' ||
+      status.kind === 'Disconnecting' ||
+      status.kind === 'PermissionRequired',
   };
 }

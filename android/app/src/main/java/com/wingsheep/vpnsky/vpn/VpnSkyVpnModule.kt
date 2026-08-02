@@ -11,6 +11,7 @@ import com.facebook.react.bridge.ReactMethod
 import com.facebook.react.bridge.WritableMap
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.wireguard.android.backend.Tunnel
+import com.wireguard.config.Config
 import java.io.ByteArrayInputStream
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.Executors
@@ -81,10 +82,14 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     fun connect(conf: String, promise: Promise) {
         executor.execute {
             try {
-                val config = VpnConfig.parseFromConf(
+                // Pass parsed config directly so additional peers and parser-supported options survive.
+                val config = Config.parse(
                     ByteArrayInputStream(conf.toByteArray(StandardCharsets.UTF_8))
                 )
-                val result = vpnManager.connect(config.toWireguardConfig())
+                if (config.peers.isEmpty()) {
+                    throw IllegalArgumentException("WireGuard config has no peer")
+                }
+                val result = vpnManager.connect(config)
                 result.fold(
                     onSuccess = { promise.resolve(stateToValue(it)) },
                     onFailure = { promise.reject("VPN_FAILED", WireguardManager.getBackendExceptionReason(it), it) }
@@ -115,7 +120,10 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     fun getStatistics(promise: Promise) {
         val stats = vpnManager.getStatistics()
         if (stats == null) {
-            promise.resolve(Arguments.createMap())
+            val map: WritableMap = Arguments.createMap()
+            map.putDouble("rxBytes", 0.0)
+            map.putDouble("txBytes", 0.0)
+            promise.resolve(map)
             return
         }
         val map: WritableMap = Arguments.createMap()

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1091942903902",
+    "project_id": "vpnsky-6696d",
+    "storage_bucket": "vpnsky-6696d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1091942903902:android:792f9503d7b3f012ae84cf",
+        "android_client_info": {
+          "package_name": "com.wingsheep.vpnsky"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAggRdMakqvrEKqruaSLIenYDxWxh1F77k"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -46,10 +46,14 @@ npm run android      # CLI: build+install to device/emulator
 
 ## Native module API (`VpnConnectManager`)
 
-`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `loadClientConf` (reads `android/app/src/main/assets/client.conf`). Emits `onVpnStateChange` via `NativeEventEmitter`.
+`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `ensureClientKey` (generates/loads a persistent Curve25519 keypair from app-private `vpnsky_client.key`; private key never ships), `rotateClientKey` (rotation helper; deletes persisted key), `generateKeyPair` (one-shot ephemeral, for diagnostics). Emits `onVpnStateChange` via `NativeEventEmitter`.
 
-Connection flow (JS, `useVpn.ts`):
-1. `loadClientConf()` — config file content from app assets
+`@react-native-firebase/remote-config` is initialized via `src/config.ts`, which fetches `BASE_API_URL` (`base_api_url`), and WireGuard server params (`vpn_dns`, `vpn_allowed_ips`, `vpn_server_public_key`, `vpn_endpoint`, `vpn_persistent_keepalive`). The **client private key is generated and persisted** at runtime via `ensureClientKey`; the client registers its per-install public key to `<base_api_url>/register` (header `X-Registry-Token: <registry_token>`) and is handed a unique tunnel address — no address/IP is baked in. Defaults are embedded for offline boots; no secret material (no WG private keys, no PSK) is ever shipped.
+
+See `server/` for the matching auto-provisioning service (`wg-registry`) and `deploy.sh` (runtime credentials only).
+
+Connection flow (JS, `useVpn.ts` + `src/config.ts`):
+1. `buildVpnConfig()` → fetches Remote Config (`base_api_url`, `registry_token`), loads stable per-install client key via `ensureClientKey()`, POSTs its pubkey to `<base_api_url>/register` (header `X-Registry-Token`), then assembles a `.conf` with `[Interface]/PrivateKey` + assigned `Address` held in app-private storage — no IP baked in.
 2. `isVpnAuthorized()` → if false `requestVpnPermission()` (system dialog)
 3. `connect(conf)` retried 3× with 500 ms pause; native parses `.conf` → `VpnConfig.toWireguardConfig()` → `GoBackend.setState(UP)`
 

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { buildVpnConfig } from '../config';
 import {
   connect as nativeConnect,
   disconnect as nativeDisconnect,
@@ -7,7 +8,6 @@ import {
   getVersion,
   isVpnAuthorized,
   isVpnSupported,
-  loadClientConf,
   onVpnStateChange,
   requestVpnPermission,
   VpnStatistics,
@@ -144,13 +144,14 @@ export function useVpn(): VpnController {
 
     let conf: string | null = null;
     try {
-      conf = await loadClientConf();
+      const prepared = await buildVpnConfig();
+      conf = prepared.conf;
     } catch {
       conf = null;
     }
     if (!conf) {
       connectingRef.current = false;
-      setStatus({ kind: VpnStateKind.Error, message: 'No VPN config found. Missing client.conf in app assets.' });
+      setStatus({ kind: VpnStateKind.Error, message: 'No VPN config found. Remote config is missing or unreachable.' });
       return;
     }
 

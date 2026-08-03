@@ -43,13 +43,43 @@ function formatBytes(bytes: number): string {
   return `${(bytes / 1024 ** i).toFixed(1)} ${units[i]}`;
 }
 
+function FireBurn({ size, style }: { size: number; style?: object }) {
+  const flicker = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(flicker, { toValue: 1, duration: 260, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(flicker, { toValue: 0, duration: 190, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+        Animated.timing(flicker, { toValue: 0.7, duration: 150, easing: Easing.inOut(Easing.sin), useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [flicker]);
+
+  const scale = flicker.interpolate({ inputRange: [0, 1], outputRange: [0.88, 1.08] });
+  const lean = flicker.interpolate({ inputRange: [0, 1], outputRange: ['-4deg', '5deg'] });
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      accessibilityLabel="Animated fire"
+      style={[styles.fireBurn, { width: size, height: size * 1.18 }, style, { transform: [{ scale }, { rotate: lean }] }]}
+    >
+      <View style={[styles.fireOuter, { borderRadius: size * 0.45 }]} />
+      <View style={[styles.fireInner, { width: size * 0.46, height: size * 0.68, borderRadius: size * 0.3 }]} />
+      <View style={[styles.fireCore, { width: size * 0.2, height: size * 0.4, borderRadius: size * 0.16 }]} />
+    </Animated.View>
+  );
+}
+
 function RocketScene({ state }: { state: VpnUiState }) {
   // motion: 0 = grounded & zoomed-in, 1 = in space & zoomed-out.
   const motion = useRef(new Animated.Value(0)).current;
   const heading = useRef(new Animated.Value(0)).current;
   const earthSpin = useRef(new Animated.Value(0)).current;
   const flame = useRef(new Animated.Value(0.65)).current;
-  const burn = useRef(new Animated.Value(0)).current;
 
   const launching = state.kind === VpnStateKind.Connecting;
   const flying = state.kind === VpnStateKind.Connected;
@@ -120,14 +150,6 @@ function RocketScene({ state }: { state: VpnUiState }) {
     }
     return () => flameLoop.stop();
   }, [flame, blasting]);
-
-  useEffect(() => {
-    Animated.timing(burn, {
-      toValue: state.kind === VpnStateKind.Error ? 1 : 0,
-      duration: 450,
-      useNativeDriver: true,
-    }).start();
-  }, [burn, state.kind]);
 
   // Camera + ramp: base is a close-up; launch pulls back to normal scene size.
   const zoom = motion.interpolate({ inputRange: [0, 1], outputRange: [1.38, 1] });
@@ -209,9 +231,13 @@ function RocketScene({ state }: { state: VpnUiState }) {
             ],
           },
         ]}>
-        <Animated.View
-          style={[styles.burnCloud, { opacity: burn, transform: [{ scale: burn }] }]}
-        />
+        {state.kind === VpnStateKind.Error ? (
+          <>
+            <FireBurn size={70} style={styles.fireBottom} />
+            <FireBurn size={27} style={styles.fireTopRight} />
+            <FireBurn size={31} style={styles.fireMiddleLeft} />
+          </>
+        ) : null}
         <View style={styles.rocketNose} />
         <View style={styles.rocketBody}>
           <View style={styles.rocketWindow} />
@@ -454,6 +480,38 @@ const styles = StyleSheet.create({
   },
   starField: StyleSheet.absoluteFill,
   star: { position: 'absolute', borderRadius: 4, backgroundColor: '#D6F3FF', opacity: 0.8 },
+  fireBurn: {
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    shadowColor: '#FF5A24',
+    shadowOpacity: 0.9,
+    shadowRadius: 14,
+    elevation: 9,
+  },
+  fireBottom: { top: 68, left: -7, zIndex: -1 },
+  fireTopRight: { top: 7, left: 46, zIndex: -1 },
+  fireMiddleLeft: { top: 43, left: -24, zIndex: -1 },
+  fireOuter: {
+    position: 'absolute',
+    bottom: 0,
+    width: '100%',
+    height: '86%',
+    backgroundColor: '#F04425',
+    transform: [{ rotate: '45deg' }],
+  },
+  fireInner: {
+    position: 'absolute',
+    bottom: 1,
+    backgroundColor: '#FF9F1C',
+    transform: [{ rotate: '45deg' }],
+  },
+  fireCore: {
+    position: 'absolute',
+    bottom: 2,
+    backgroundColor: '#FFE69A',
+    transform: [{ rotate: '45deg' }],
+  },
   connectionOverlay: {
     position: 'absolute',
     top: 16,
@@ -562,18 +620,6 @@ const styles = StyleSheet.create({
     height: '78%',
     borderRadius: 6,
     backgroundColor: '#FFF3A1',
-  },
-  burnCloud: {
-    position: 'absolute',
-    top: 40,
-    width: 68,
-    height: 68,
-    borderRadius: 34,
-    backgroundColor: '#E84726',
-    shadowColor: '#FFB000',
-    shadowOpacity: 1,
-    shadowRadius: 18,
-    elevation: 10,
   },
   baseGlow: {
     position: 'absolute',

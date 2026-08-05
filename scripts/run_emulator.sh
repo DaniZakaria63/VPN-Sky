@@ -104,6 +104,7 @@ echo "Booted:"
 echo "Model: $("$ADB" shell getprop ro.product.model)"
 
 if [[ "$RUN_APP" -eq 1 ]]; then
-  echo "→ npm run android"
-  (cd "$(dirname "$0")/.." && npm run android)
+  EMU_SERIAL=$("$ADB" devices | awk '$1 ~ /^emulator-/ && $2=="device" {print $1; exit}')
+  echo "→ npm run android (target emulator $EMU_SERIAL)"
+  (cd "$(dirname "$0")/.." && npm run android -- "$EMU_SERIAL")
 fi

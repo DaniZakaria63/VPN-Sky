@@ -15,7 +15,9 @@ interface VpnNativeModule {
   disconnect(): Promise<string>;
   getState(): Promise<string>;
   getStatistics(): Promise<VpnStatistics>;
-  loadClientConf(): Promise<string>;
+  ensureClientKey(): Promise<{ privateKey: string; publicKey: string }>;
+  generateKeyPair(): Promise<{ privateKey: string; publicKey: string }>;
+  rotateClientKey(): Promise<{ privateKey: string; publicKey: string }>;
   addListener(eventName: string): void;
   removeListeners(count: number): void;
 }
@@ -81,11 +83,25 @@ export function getStatistics(): Promise<VpnStatistics | null> {
   return native.getStatistics();
 }
 
-export function loadClientConf(): Promise<string | null> {
+export function generateKeyPair(): Promise<{ privateKey: string; publicKey: string } | null> {
   if (!native) {
     return Promise.resolve(null);
   }
-  return native.loadClientConf();
+  return native.generateKeyPair();
+}
+
+export function ensureClientKey(): Promise<{ privateKey: string; publicKey: string } | null> {
+  if (!native) {
+    return Promise.resolve(null);
+  }
+  return native.ensureClientKey();
+}
+
+export function rotateClientKey(): Promise<{ privateKey: string; publicKey: string } | null> {
+  if (!native) {
+    return Promise.resolve(null);
+  }
+  return native.rotateClientKey();
 }
 
 export function onVpnStateChange(listener: (state: VpnState) => void): () => void {

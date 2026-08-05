@@ -6,7 +6,7 @@
     "start": "react-native start",
     "dev": "bash scripts/dev.sh",
     "dev:pixel": "bash scripts/dev.sh Pixel_9_Pro",
-    "android": "export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk}; export PATH=\"$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools/bin:$PATH\"; react-native run-android",
+    "android": "bash scripts/run_android.sh",
     "emulator": "bash scripts/run_emulator.sh",
     "emulator:app": "bash scripts/run_emulator.sh -a",
     "lan": "export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk}; export PATH=\"$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools/bin:$PATH\"; react-native start --host 0.0.0.0",
@@ -15,9 +15,11 @@
     "test": "jest"
   },
   "dependencies": {
+    "@react-native-firebase/app": "^26.0.0",
+    "@react-native-firebase/remote-config": "^26.0.0",
+    "@react-native/new-app-screen": "0.86.2",
     "react": "19.2.3",
     "react-native": "0.86.2",
-    "@react-native/new-app-screen": "0.86.2",
     "react-native-safe-area-context": "^5.5.2"
   },
   "devDependencies": {

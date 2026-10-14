@@ -146,12 +146,13 @@ export function useVpn(): VpnController {
     try {
       const prepared = await buildVpnConfig();
       conf = prepared.conf;
-    } catch {
-      conf = null;
-    }
-    if (!conf) {
+    } catch (e) {
       connectingRef.current = false;
-      setStatus({ kind: VpnStateKind.Error, message: 'No VPN config found. Remote config is missing or unreachable.' });
+      const err = e as { message?: string };
+      setStatus({
+        kind: VpnStateKind.Error,
+        message: err.message ?? 'No VPN config found. Remote config is missing or unreachable.',
+      });
       return;
     }
 

@@ -44,7 +44,11 @@ const DEFAULTS: Record<string, string> = {
 export async function loadAppConfig(): Promise<AppConfig> {
   const rc = getRemoteConfig();
   rc.defaultConfig = DEFAULTS;
-  await fetchAndActivate(rc);
+  try {
+    await fetchAndActivate(rc);
+  } catch (e) {
+    console.warn('Remote config fetch failed, using cached/defaults:', e);
+  }
   return {
     baseUrl: getValue(rc, 'base_api_url').asString().trim(),
     registryToken: getValue(rc, 'registry_token').asString().trim(),
@@ -64,7 +68,9 @@ export async function registerClient(
 ): Promise<string> {
   const { baseUrl, registryToken } = config;
   if (!baseUrl) {
-    return Promise.reject(new Error('No base API URL configured'));
+    return Promise.reject(
+      new Error('No server URL configured in Remote Config (base_api_url is empty)'),
+    );
   }
   const res = await fetch(`${baseUrl.replace(/\/+$/, '')}/register`, {
     method: 'POST',

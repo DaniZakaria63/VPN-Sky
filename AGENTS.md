@@ -50,7 +50,7 @@ npm run android      # CLI: build+install to device/emulator
 
 `@react-native-firebase/remote-config` is initialized via `src/config.ts`, which fetches `BASE_API_URL` (`base_api_url`), and WireGuard server params (`vpn_dns`, `vpn_allowed_ips`, `vpn_server_public_key`, `vpn_endpoint`, `vpn_persistent_keepalive`). The **client private key is generated and persisted** at runtime via `ensureClientKey`; the client registers its per-install public key to `<base_api_url>/register` (header `X-Registry-Token: <registry_token>`) and is handed a unique tunnel address — no address/IP is baked in. Defaults are embedded for offline boots; no secret material (no WG private keys, no PSK) is ever shipped.
 
-See `server/` for the matching auto-provisioning service (`wg-registry`) and `deploy.sh` (runtime credentials only).
+The matching auto-provisioning service (`wg-registry`) and its `deploy.sh` live in a separate project: **VPN-Sky-Backend** (https://github.com/DaniZakaria63/VPN-Sky-Backend, checked out at `~/PycharmProjects/vpnsky-backend`). This repo is the client only — it must never need that server's source to build.
 
 Connection flow (JS, `useVpn.ts` + `src/config.ts`):
 1. `buildVpnConfig()` → fetches Remote Config (`base_api_url`, `registry_token`), loads stable per-install client key via `ensureClientKey()`, POSTs its pubkey to `<base_api_url>/register` (header `X-Registry-Token`), then assembles a `.conf` with `[Interface]/PrivateKey` + assigned `Address` held in app-private storage — no IP baked in.

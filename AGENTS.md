@@ -65,13 +65,14 @@ npm run build:apk
 
 CI lives in `.github/workflows/`:
 
-- `build-master.yml`: PRs run typecheck/lint/tests and build an unsigned debug APK. Pushes to
-  `master` (and manual dispatches) build the **same R8-minified, upload-key-signed APK + AAB** as a
-  release, then attach them to a GitHub release.
-- `build-release.yml`: `v*` tags build the signed AAB/APK, upload the AAB to the Play internal
-  track, and attach both to a GitHub release.
-- Both use a timestamp-derived `versionCode` (seconds since 2025-01-01) so master builds and tag
-  releases stay monotonic and either can be uploaded without a Play downgrade.
+- `lint.yml`: pull requests into `master` or `dev` run `tsc`, ESLint, and Jest only. It never builds
+  or signs, so a dev PR cannot publish anything.
+- `build-master.yml`: **push to `master` only**. It builds the R8-minified, upload-key-signed APK
+  and AAB and attaches them to a GitHub release. It does not upload to Play.
+- `build-release.yml`: **`v*` tags only**. It builds the signed AAB/APK, uploads the AAB to the Play
+  internal track, and attaches both to a GitHub release.
+- Both build workflows use a timestamp-derived `versionCode` (seconds since 2025-01-01) so master
+  builds and tag releases stay monotonic and either can be uploaded without a Play downgrade.
 
 Repository secrets (Settings → Secrets and variables → Actions):
 

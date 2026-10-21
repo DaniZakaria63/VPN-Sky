@@ -1,14 +1,20 @@
 name: Build Master
 
+# Master pushes only. Pull requests are handled by lint.yml; tagged releases by build-release.yml.
 on:
   push:
     branches: [master]
 
+concurrency:
+  group: build-master-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
 jobs:
-  master:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,27 +27,93 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # Keep packages on ONE line: the action splits this input on spaces, not newlines.
+      # A newline makes sdkmanager receive "platforms;android-36\nbuild-tools;36.0.0" as one
+      # package name, which fails with "Failed to find package".
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-36 build-tools;36.0.0"
+
+      # React Native 0.86 supports Node ^20.19.4 || ^22.13.0.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test -- --runInBand
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # Timestamp-derived versionCode, monotonic across master CI and tag releases.
       - name: Set version
-        run: echo "APP_VERSION_NAME=0.0.${{ github.run_number }}" >> "$GITHUB_ENV"
-
-      - name: Build debug APK
-        working-directory: android
         run: |
-          ./gradlew assembleDebug \
-            -PappVersionCode=${{ github.run_number }} \
-            -PappVersionName=$APP_VERSION_NAME
+          CODE=$(( $(date +%s) - 1735689600 ))
+          if [ "$CODE" -lt 1 ]; then CODE=1; fi
+          echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          echo "APP_VERSION_NAME=1.0.${{ github.run_number }}-ci" >> "$GITHUB_ENV"
+
+      - name: Validate signing secrets
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          for name in KEYSTORE_FILE KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not set. Add the four signing secrets described in AGENTS.md."
+              exit 1
+            fi
+          done
+
+      - name: Decode keystore
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+        run: |
+          mkdir -p android/keystore
+          printf '%s' "$KEYSTORE_FILE" | tr -d '\r' | base64 -d > android/keystore/vpnsky.jks
+          test -s android/keystore/vpnsky.jks
+
+      - name: Verify keystore credentials
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          keytool -list -keystore android/keystore/vpnsky.jks \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+
+      - name: Build signed release
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease assembleRelease \
+            -PappVersionName="$APP_VERSION_NAME" \
+            -PappVersionCode="$APP_VERSION_CODE"
+
+      - name: Upload signed APK and AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: vpnsky-signed-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
 
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
@@ -53,5 +125,7 @@ jobs:
             ## CI Build ${{ env.APP_VERSION_NAME }}
 
             **Commit:** ${{ github.sha }}
-          artifacts: app/build/outputs/apk/debug/app-debug.apk
+            **versionCode:** ${{ env.APP_VERSION_CODE }}
+          artifacts: android/app/build/outputs/apk/release/app-release.apk,android/app/build/outputs/bundle/release/app-release.aab
+          allowUpdates: true
           generateReleaseNotes: true

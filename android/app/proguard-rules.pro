@@ -1,10 +1,19 @@
-# Add project specific ProGuard rules here.
-# By default, the flags in this file are appended to flags specified
-# in /usr/local/Cellar/android-sdk/24.3.3/tools/proguard/proguard-android.txt
-# You can edit the include path and order by changing the proguardFiles
-# directive in build.gradle.
+# VPNSky-specific R8 rules.
 #
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# React Native ships consumer rules for the bridge, Hermes, Yoga and Fresco, and Firebase ships
+# its own. These rules cover what only this app knows about.
 
-# Add any project specific keep options here:
+# The native module is instantiated by React Native's generated PackageList and its @ReactMethod
+# surface is invoked reflectively by the bridge. Keeping the small package avoids a class of
+# "method not found" crashes that only appear in minified builds.
+-keep class com.wingsheep.vpnsky.vpn.VpnPackage { *; }
+-keep class com.wingsheep.vpnsky.vpn.VpnSkyVpnModule { *; }
+
+# Declared by name in AndroidManifest.xml.
+-keep class com.wireguard.android.backend.GoBackend$VpnService { *; }
+
+# Keep annotation metadata that reflection-based framework code reads.
+-keepattributes RuntimeVisibleAnnotations,RuntimeInvisibleAnnotations,AnnotationDefault
+
+# The WireGuard tunnel library's JNI entry points are protected by the default
+# `-keepclasseswithmembernames class * { native <methods>; }` rule. Do not add broad keeps here.

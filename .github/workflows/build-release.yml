@@ -4,11 +4,12 @@ on:
   push:
     tags: ["v[1-9].*"]
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,37 +22,91 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      # The action splits this input on spaces, not newlines. Keep it on one line.
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: "platforms;android-36 build-tools;36.0.0"
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test -- --runInBand
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Validate signing secrets
+        run: |
+          if [ -z "${KEYSTORE_FILE:-}" ]; then
+            echo "::error::KEYSTORE_FILE is not set. A release must not silently fall back to debug signing."
+            exit 1
+          fi
+          if [ -z "${KEYSTORE_PASSWORD:-}" ] || [ -z "${KEY_ALIAS:-}" ] || [ -z "${KEY_PASSWORD:-}" ]; then
+            echo "::error::KEYSTORE_PASSWORD, KEY_ALIAS and KEY_PASSWORD must all be set."
+            exit 1
+          fi
+          if [ -z "${PLAY_SERVICE_ACCOUNT_JSON:-}" ]; then
+            echo "::error::PLAY_SERVICE_ACCOUNT_JSON is not set; the signed AAB cannot be uploaded."
+            exit 1
+          fi
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+
       - name: Decode keystore
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
         run: |
           mkdir -p android/keystore
-          echo "${{ secrets.KEYSTORE_FILE }}" | base64 -d > android/keystore/vpnsky.jks
+          printf '%s' "$KEYSTORE_FILE" | tr -d '\r' | base64 -d > android/keystore/vpnsky.jks
+          test -s android/keystore/vpnsky.jks
+
+      - name: Verify keystore credentials
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          keytool -list -keystore android/keystore/vpnsky.jks \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
 
       - name: Set version
         run: |
           TAG="${{ github.ref_name }}"
           TAG="${TAG#v}"
+          if ! printf '%s' "$TAG" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Tag $TAG is not a semantic version (expected v1.2.3)"
+            exit 1
+          fi
+          # Same timestamp-derived scheme as Build Master: monotonic across every upload, whether
+          # it came from a master CI build or a tagged release.
+          CODE=$(( $(date +%s) - 1735689600 ))
+          if [ "$CODE" -lt 1 ]; then CODE=1; fi
           echo "APP_VERSION_NAME=$TAG" >> "$GITHUB_ENV"
-          IFS=. read -r major minor patch <<< "$TAG"
-          echo "APP_VERSION_CODE=$((major * 1000000 + minor * 1000 + patch))" >> "$GITHUB_ENV"
+          echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
 
       - name: Build signed AAB and APK
         working-directory: android
         run: |
           ./gradlew bundleRelease assembleRelease \
-            -PappVersionName=$APP_VERSION_NAME \
-            -PappVersionCode=$APP_VERSION_CODE
+            -PappVersionName="$APP_VERSION_NAME" \
+            -PappVersionCode="$APP_VERSION_CODE"
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -62,7 +117,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.wingsheep.vpnsky
-          releaseFiles: app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           tracks: internal
           status: completed
 
@@ -74,11 +129,15 @@ jobs:
           name: Release ${{ env.APP_VERSION_NAME }}
           body: |
             ## VPNSky ${{ env.APP_VERSION_NAME }}
-          artifacts: app/build/outputs/apk/release/app-release.apk
+          artifacts: android/app/build/outputs/apk/release/app-release.apk
+          allowUpdates: true
           generateReleaseNotes: true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: release-artifacts
-          path: app/build/outputs/apk/release/app-release.apk
+          path: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error

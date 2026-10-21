@@ -1,0 +1,2142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>VPNSky Privacy Policy — Android VPN Client</title>
+<meta name="description" content="Privacy Policy for VPNSky, a WireGuard VPN client for Android. Learn what the app and its tunnel servers handle, what is never collected, how long data is kept, and your rights.">
+<meta name="theme-color" content="#050d18">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="https://www.dream-team.works/vpnsky/privacy-policy">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%234fd8ff'/%3E%3Cpath d='M16 5 8 8.2v4.9c0 4.6 3.1 8.9 8 10.3 4.9-1.4 8-5.7 8-10.3V8.2L16 5Z' fill='%23003544'/%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="VPNSky">
+<meta property="og:title" content="VPNSky Privacy Policy">
+<meta property="og:description" content="What the VPNSky Android VPN handles, what it never collects, and the choices you have.">
+<meta property="og:url" content="https://www.dream-team.works/vpnsky/privacy-policy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="VPNSky Privacy Policy">
+<meta name="twitter:description" content="What the VPNSky Android VPN handles, what it never collects, and the choices you have.">
+<style>
+  @font-face {
+    font-family: "Roboto";
+    src: url("/vpnsky/privacy-policy/roboto.woff2") format("woff2");
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  :root {
+    color-scheme: dark;
+
+    --md-primary: #4fd8ff;
+    --md-on-primary: #003544;
+    --md-primary-container: #00566c;
+    --md-on-primary-container: #b6edff;
+    --md-secondary: #c3c6ff;
+    --md-on-secondary: #1b255f;
+    --md-secondary-container: #313b75;
+    --md-on-secondary-container: #e0e0ff;
+    --md-tertiary: #edb8ff;
+    --md-on-tertiary: #3f0a57;
+    --md-tertiary-container: #591e75;
+    --md-on-tertiary-container: #f9d8ff;
+    --md-error: #ffb4ab;
+    --md-on-error: #690005;
+
+    --md-background: #050d18;
+    --md-surface: #050d18;
+    --md-surface-container-lowest: #02060d;
+    --md-surface-container-low: #081426;
+    --md-surface-container: #0c1b30;
+    --md-surface-container-high: #13243c;
+    --md-surface-container-highest: #1b2e49;
+    --md-on-surface: #e6edf7;
+    --md-on-surface-variant: #b7c4d8;
+    --md-outline: #8a98ad;
+    --md-outline-variant: #3b4a61;
+
+    --primary-soft: rgba(79, 216, 255, 0.14);
+    --secondary-soft: rgba(195, 198, 255, 0.14);
+    --tertiary-soft: rgba(237, 184, 255, 0.14);
+    --hairline: rgba(138, 152, 173, 0.24);
+    --hairline-soft: rgba(138, 152, 173, 0.16);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.34), 0 2px 6px rgba(0, 0, 0, 0.18);
+    --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.32);
+    --shadow-3: 0 28px 72px rgba(0, 0, 0, 0.5);
+
+    --font: "Roboto", "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --ease: cubic-bezier(0.2, 0, 0, 1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background-color: var(--md-background);
+    background-image:
+      radial-gradient(1100px 700px at 88% -12%, rgba(79, 216, 255, 0.10), transparent 60%),
+      radial-gradient(900px 700px at -8% 8%, rgba(195, 198, 255, 0.08), transparent 62%),
+      radial-gradient(800px 800px at 50% 120%, rgba(237, 184, 255, 0.05), transparent 65%);
+    background-attachment: fixed;
+    color: var(--md-on-surface);
+    font: 400 16px/1.6 var(--font);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(183, 196, 216, 0.09) 1px, transparent 1px);
+    background-size: 32px 32px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 55%);
+    -webkit-mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent 55%);
+  }
+
+  ::selection { background: rgba(79, 216, 255, 0.30); color: #fff; }
+
+  a { color: var(--md-primary); text-decoration: none; }
+  a:hover { color: #9fe9ff; }
+
+  :focus-visible {
+    outline: 2px solid var(--md-primary);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .skip {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    padding: 12px 18px;
+    border-radius: 0 0 12px 0;
+    font-weight: 500;
+  }
+  .skip:focus { left: 0; }
+
+  .wrap { width: min(1240px, calc(100% - 48px)); margin-inline: auto; }
+
+  /* ---------- Material top app bar ---------- */
+
+  .appbar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(5, 13, 24, 0.86);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    backdrop-filter: blur(20px) saturate(140%);
+    border-bottom: 1px solid var(--hairline-soft);
+  }
+
+  .appbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    min-height: 72px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--md-on-surface);
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .brand:hover { color: var(--md-on-surface); }
+
+  .logo {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #35c9f2 0%, #6d7cff 58%, #b57bff 100%);
+    color: #041a24;
+    box-shadow: 0 6px 18px rgba(79, 216, 255, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    flex: none;
+  }
+  .logo svg { width: 24px; height: 24px; display: block; }
+
+  .brand-tag {
+    display: inline-flex;
+    align-items: center;
+    height: 26px;
+    padding: 0 10px;
+    margin-left: 2px;
+    border-radius: 8px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+  }
+
+  .appbar nav {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-btn,
+  .text-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding: 0 15px;
+    border-radius: 20px;
+    color: var(--md-on-surface-variant);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    transition: background-color 0.16s var(--ease), color 0.16s var(--ease);
+  }
+  .nav-btn:hover,
+  .text-btn:hover {
+    background: rgba(183, 196, 216, 0.09);
+    color: var(--md-on-surface);
+  }
+  .nav-btn[aria-current="page"] {
+    background: var(--primary-soft);
+    color: var(--md-primary);
+  }
+
+  .icon-btn {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    flex: none;
+    border-radius: 50%;
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface-variant);
+    transition: background-color 0.16s var(--ease), color 0.16s var(--ease), transform 0.16s var(--ease);
+  }
+  .icon-btn:hover {
+    background: var(--md-surface-container-highest);
+    color: var(--md-on-surface);
+    transform: translateY(-1px);
+  }
+  .icon-btn svg { width: 20px; height: 20px; }
+
+  /* ---------- hero ---------- */
+
+  .hero { padding-top: 32px; }
+
+  .hero-card {
+    position: relative;
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) 300px;
+    align-items: center;
+    gap: 32px;
+    min-height: 380px;
+    padding: clamp(30px, 4.6vw, 58px);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background:
+      radial-gradient(90% 130% at 6% -10%, rgba(79, 216, 255, 0.42), transparent 52%),
+      radial-gradient(80% 120% at 100% 0%, rgba(181, 123, 255, 0.34), transparent 55%),
+      linear-gradient(135deg, #063d56 0%, #132c69 48%, #431a63 100%);
+    box-shadow: var(--shadow-3), inset 0 1px 0 rgba(255, 255, 255, 0.10);
+  }
+
+  .hero-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.20) 1px, transparent 1px);
+    background-size: 26px 26px;
+    opacity: 0.22;
+    mask-image: linear-gradient(115deg, #000 5%, transparent 62%);
+    -webkit-mask-image: linear-gradient(115deg, #000 5%, transparent 62%);
+    pointer-events: none;
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .overline {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: #d7f4ff;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+  }
+  .overline svg { width: 14px; height: 14px; }
+
+  h1 {
+    margin: 20px 0 16px;
+    color: #fff;
+    font-size: clamp(2.9rem, 7vw, 4.7rem);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.035em;
+  }
+
+  .lede {
+    max-width: 58ch;
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 17px;
+    line-height: 1.65;
+  }
+
+  .hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 26px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .chip .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #55e39b;
+    box-shadow: 0 0 0 3px rgba(85, 227, 155, 0.16);
+  }
+  .chip b { font-weight: 600; }
+
+  .hero-art {
+    position: relative;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+  }
+
+  .orb {
+    position: relative;
+    width: 228px;
+    height: 228px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background:
+      radial-gradient(circle at 34% 28%, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.05) 58%, rgba(255, 255, 255, 0.02) 72%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.28),
+      inset 0 -30px 60px rgba(0, 0, 0, 0.22),
+      0 24px 56px rgba(0, 0, 0, 0.30);
+  }
+  .orb::before,
+  .orb::after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    pointer-events: none;
+  }
+  .orb::before { inset: -20px; }
+  .orb::after { inset: -42px; border-color: rgba(255, 255, 255, 0.07); }
+
+  .orb svg {
+    width: 94px;
+    height: 94px;
+    color: #fff;
+    filter: drop-shadow(0 10px 28px rgba(79, 216, 255, 0.45));
+  }
+
+  .orb-label {
+    position: absolute;
+    bottom: -56px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 11px;
+    border-radius: 8px;
+    background: rgba(5, 13, 24, 0.34);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+  .orb-label .dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #55e39b;
+  }
+
+  /* ---------- stat cards ---------- */
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+  }
+
+  .stat {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding: 22px 24px 20px;
+    border-radius: 24px;
+    min-height: 148px;
+    box-shadow: var(--shadow-1);
+  }
+  .stat.primary { background: var(--md-primary-container); color: var(--md-on-primary-container); }
+  .stat.secondary { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+  .stat.tertiary { background: var(--md-tertiary-container); color: var(--md-on-tertiary-container); }
+
+  .stat::after {
+    content: "";
+    position: absolute;
+    right: -46px;
+    top: -46px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    border: 1px solid currentColor;
+    opacity: 0.16;
+    pointer-events: none;
+  }
+
+  .stat-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.14);
+  }
+  .stat-icon svg { width: 22px; height: 22px; }
+
+  .stat-value {
+    margin-top: 14px;
+    font-size: 32px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  .stat-label {
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.35;
+    opacity: 0.86;
+  }
+
+  /* ---------- layout ---------- */
+
+  .lay {
+    display: grid;
+    grid-template-columns: 280px minmax(0, 860px);
+    justify-content: center;
+    gap: 40px;
+    align-items: start;
+    padding: 40px 0 24px;
+  }
+
+  /* ---------- navigation drawer ---------- */
+
+  .toc {
+    position: sticky;
+    top: 96px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding: 14px;
+    border-radius: 24px;
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--md-outline-variant) transparent;
+  }
+  .toc::-webkit-scrollbar { width: 6px; }
+  .toc::-webkit-scrollbar-thumb { background: var(--md-outline-variant); border-radius: 3px; }
+
+  .toc-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 6px 10px 12px;
+  }
+  .toc-title {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--md-outline);
+  }
+  .toc-count { font-size: 11px; color: var(--md-outline); }
+
+  .toc-group { margin-top: 8px; }
+  .toc-label {
+    margin: 8px 10px 4px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--md-outline);
+  }
+
+  .toc a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 38px;
+    padding: 7px 10px;
+    border-radius: 10px;
+    color: var(--md-on-surface-variant);
+    font-size: 13px;
+    line-height: 1.3;
+    transition: background-color 0.14s var(--ease), color 0.14s var(--ease);
+  }
+  .toc a:hover {
+    background: rgba(183, 196, 216, 0.08);
+    color: var(--md-on-surface);
+  }
+  .toc a .num {
+    flex: none;
+    width: 18px;
+    font-size: 10.5px;
+    font-weight: 500;
+    color: var(--md-outline);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .toc-foot {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--md-surface-container);
+    color: var(--md-on-surface-variant);
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+  .toc-foot svg { width: 16px; height: 16px; flex: none; color: var(--md-primary); }
+  .toc-foot strong { display: block; color: var(--md-on-surface); font-weight: 500; }
+
+  /* mobile contents */
+  .toc-mobile {
+    display: none;
+    margin-bottom: 4px;
+    border-radius: 20px;
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-1);
+    overflow: hidden;
+  }
+  .toc-mobile summary {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 58px;
+    padding: 0 18px;
+    cursor: pointer;
+    list-style: none;
+    color: var(--md-on-surface);
+    font-size: 14px;
+    font-weight: 500;
+    user-select: none;
+  }
+  .toc-mobile summary::-webkit-details-marker { display: none; }
+  .toc-mobile summary > svg.lead { width: 20px; height: 20px; color: var(--md-primary); }
+  .toc-mobile summary .chev {
+    width: 20px;
+    height: 20px;
+    margin-left: auto;
+    color: var(--md-on-surface-variant);
+    transition: transform 0.2s var(--ease);
+  }
+  .toc-mobile[open] summary .chev { transform: rotate(180deg); }
+
+  .toc-mobile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 10px;
+    padding: 0 12px 14px;
+  }
+  .toc-mobile-grid a {
+    display: flex;
+    gap: 9px;
+    align-items: baseline;
+    padding: 9px 8px;
+    border-radius: 10px;
+    color: var(--md-on-surface-variant);
+    font-size: 13px;
+    line-height: 1.35;
+  }
+  .toc-mobile-grid a:hover { background: rgba(183, 196, 216, 0.08); color: var(--md-on-surface); }
+  .toc-mobile-grid .num { color: var(--md-outline); font-size: 10.5px; flex: none; }
+
+  /* ---------- article ---------- */
+
+  .article {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .summary-card {
+    position: relative;
+    overflow: hidden;
+    padding: clamp(22px, 3.2vw, 30px);
+    border-radius: 24px;
+    background:
+      radial-gradient(600px 220px at 100% 0%, rgba(79, 216, 255, 0.08), transparent 70%),
+      var(--md-surface-container);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-1);
+  }
+
+  .summary-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .summary-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+  }
+  .summary-icon svg { width: 26px; height: 26px; }
+
+  .kicker {
+    display: block;
+    margin: 1px 0 5px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: var(--md-primary);
+  }
+
+  .summary-card h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.6vw, 1.5rem);
+    line-height: 1.25;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--md-on-surface);
+  }
+
+  .summary-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .summary-list li {
+    position: relative;
+    padding-left: 32px;
+    color: var(--md-on-surface-variant);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .summary-list li::before {
+    content: "✓";
+    position: absolute;
+    left: 0;
+    top: 1px;
+    display: grid;
+    place-items: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-soft);
+    color: var(--md-primary);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .summary-list strong { color: var(--md-on-surface); font-weight: 600; }
+
+  .policy-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .policy-card {
+    scroll-margin-top: 96px;
+    padding: clamp(22px, 3.4vw, 32px);
+    border-radius: 24px;
+    background: var(--md-surface-container-low);
+    border: 1px solid var(--hairline);
+    box-shadow: var(--shadow-1);
+    transition: border-color 0.24s var(--ease), box-shadow 0.24s var(--ease);
+  }
+  .policy-card:target {
+    border-color: rgba(79, 216, 255, 0.65);
+    box-shadow: 0 0 0 1px rgba(79, 216, 255, 0.35), var(--shadow-2);
+  }
+
+  .policy-card.tone-primary { --tone: var(--md-primary); --tone-soft: var(--primary-soft); }
+  .policy-card.tone-secondary { --tone: var(--md-secondary); --tone-soft: var(--secondary-soft); }
+  .policy-card.tone-tertiary { --tone: var(--md-tertiary); --tone-soft: var(--tertiary-soft); }
+
+  .policy-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+  }
+
+  .section-icon {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 16px;
+    background: var(--tone-soft);
+    color: var(--tone);
+  }
+  .section-icon svg { width: 24px; height: 24px; }
+
+  .sec-overline {
+    display: block;
+    margin: 2px 0 4px;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--tone);
+  }
+
+  .policy-head h2 {
+    margin: 0;
+    font-size: clamp(1.25rem, 2.5vw, 1.5rem);
+    line-height: 1.28;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--md-on-surface);
+  }
+
+  .doc-body > p {
+    margin: 0 0 14px;
+    color: var(--md-on-surface-variant);
+    font-size: 15.5px;
+    line-height: 1.72;
+  }
+  .doc-body > p:last-child { margin-bottom: 0; }
+
+  .doc-body h3 {
+    margin: 26px 0 9px;
+    font-size: 11.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--tone);
+  }
+  .doc-body h3:first-child { margin-top: 0; }
+
+  .doc-body ul, .doc-body ol {
+    margin: 0 0 16px;
+    padding-left: 22px;
+  }
+  .doc-body li {
+    margin: 7px 0;
+    color: var(--md-on-surface-variant);
+    font-size: 15px;
+    line-height: 1.68;
+  }
+  .doc-body li::marker { color: var(--tone); }
+  .doc-body ol li::marker { font-weight: 600; }
+
+  .doc-body a {
+    color: var(--md-primary);
+    text-decoration: underline;
+    text-decoration-color: rgba(79, 216, 255, 0.40);
+    text-underline-offset: 3px;
+    border-radius: 4px;
+    transition: background-color 0.14s var(--ease), text-decoration-color 0.14s var(--ease);
+  }
+  .doc-body a:hover {
+    background: rgba(79, 216, 255, 0.08);
+    text-decoration-color: var(--md-primary);
+  }
+
+  .doc-body strong { color: var(--md-on-surface); font-weight: 600; }
+
+  code, .mono {
+    font-family: var(--mono);
+    font-size: 0.86em;
+    color: #d9f1ff;
+    background: var(--md-surface-container-highest);
+    border: 1px solid var(--hairline);
+    border-radius: 6px;
+    padding: 1px 6px;
+    white-space: nowrap;
+  }
+
+  .note {
+    position: relative;
+    margin: 18px 0;
+    padding: 17px 18px 17px 54px;
+    border-radius: 16px;
+    background: var(--md-surface-container-high);
+    color: var(--md-on-surface-variant);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+  .note::before {
+    content: "i";
+    position: absolute;
+    left: 18px;
+    top: 17px;
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--tone);
+    color: #041018;
+    font-size: 12px;
+    font-weight: 700;
+    font-style: normal;
+  }
+  .note p { margin: 0; color: inherit; font-size: inherit; line-height: inherit; }
+  .note strong { color: var(--md-on-surface); }
+
+  /* ---------- data tables ---------- */
+
+  .table-wrap {
+    margin: 10px 0 20px;
+    border-radius: 16px;
+    border: 1px solid var(--hairline);
+    background: var(--md-surface-container);
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    width: 100%;
+    min-width: 620px;
+    border-collapse: collapse;
+    font-size: 14px;
+    line-height: 1.62;
+  }
+
+  thead th {
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--md-on-surface);
+    background: var(--md-surface-container-highest);
+    white-space: nowrap;
+  }
+  thead th:first-child { border-radius: 15px 0 0 0; }
+  thead th:last-child { border-radius: 0 15px 0 0; }
+
+  tbody td {
+    padding: 14px 16px;
+    vertical-align: top;
+    color: var(--md-on-surface-variant);
+    border-top: 1px solid var(--hairline-soft);
+  }
+  tbody td:first-child { color: var(--md-on-surface); }
+  tbody strong { color: var(--md-on-surface); font-weight: 600; }
+
+  /* ---------- never-collect list ---------- */
+
+  .never-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 24px;
+    margin: 10px 0 18px;
+    padding: 0;
+    list-style: none;
+  }
+  .never-grid li {
+    position: relative;
+    margin: 0;
+    padding-left: 32px;
+    color: var(--md-on-surface-variant);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+  .never-grid li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255, 180, 171, 0.10);
+  }
+  .never-grid li::after {
+    content: "✕";
+    position: absolute;
+    left: 5.5px;
+    top: 1px;
+    color: var(--md-error);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* ---------- flight path ---------- */
+
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+    margin: 10px 0 22px;
+    padding: 0;
+    list-style: none;
+  }
+  .flow li {
+    position: relative;
+    margin: 0;
+    padding: 15px;
+    border-radius: 16px;
+    background: var(--md-surface-container-high);
+  }
+  .flow li:not(:last-child)::after {
+    content: "→";
+    position: absolute;
+    right: -18px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--md-surface-container-low);
+    color: var(--tone);
+    font-size: 14px;
+    line-height: 1;
+  }
+  .flow .step-n {
+    display: inline-flex;
+    align-items: center;
+    height: 22px;
+    padding: 0 8px;
+    border-radius: 6px;
+    background: var(--tone-soft);
+    color: var(--tone);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .flow .step-title {
+    display: block;
+    margin: 10px 0 5px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: var(--md-on-surface);
+  }
+  .flow .step-body {
+    display: block;
+    font-size: 12.5px;
+    line-height: 1.55;
+    color: var(--md-on-surface-variant);
+  }
+
+  /* ---------- see / never see ---------- */
+
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 20px 0;
+  }
+  .compare > div {
+    padding: 18px;
+    border-radius: 16px;
+    background: var(--md-surface-container-high);
+  }
+  .compare > div.can {
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+  }
+  .compare h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--md-on-surface);
+  }
+  .compare .can h3 { color: var(--md-on-primary-container); }
+  .compare h3 span { font-size: 13px; }
+  .compare ul { margin: 0; padding-left: 18px; }
+  .compare li {
+    margin: 6px 0;
+    font-size: 13.5px;
+    line-height: 1.58;
+    color: inherit;
+  }
+  .compare .can li { color: var(--md-on-primary-container); }
+  .compare li::marker { color: currentColor; }
+
+  /* ---------- retention rows ---------- */
+
+  .rows { margin: 4px 0 18px; }
+  .rows > div {
+    display: grid;
+    grid-template-columns: 206px minmax(0, 1fr);
+    gap: 24px;
+    padding: 13px 0;
+    border-top: 1px solid var(--hairline-soft);
+  }
+  .rows dt {
+    color: var(--md-on-surface);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.55;
+  }
+  .rows dd {
+    margin: 0;
+    color: var(--md-on-surface-variant);
+    font-size: 14.5px;
+    line-height: 1.62;
+  }
+
+  /* ---------- footer ---------- */
+
+  .site-footer {
+    margin-top: 56px;
+    padding: 8px 0 96px;
+  }
+
+  .cta-card {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding: clamp(28px, 4vw, 44px);
+    border-radius: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    background:
+      radial-gradient(80% 140% at 0% 0%, rgba(79, 216, 255, 0.36), transparent 55%),
+      radial-gradient(80% 140% at 100% 100%, rgba(237, 184, 255, 0.26), transparent 55%),
+      linear-gradient(120deg, #00495c 0%, #23286e 55%, #4d1b67 100%);
+    box-shadow: var(--shadow-3);
+  }
+  .cta-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.18) 1px, transparent 1px);
+    background-size: 28px 28px;
+    opacity: 0.18;
+    mask-image: linear-gradient(100deg, #000, transparent 70%);
+    -webkit-mask-image: linear-gradient(100deg, #000, transparent 70%);
+    pointer-events: none;
+  }
+  .cta-copy { position: relative; z-index: 2; max-width: 560px; }
+  .cta-copy .kicker { color: #bff2ff; }
+  .cta-copy h2 {
+    margin: 0 0 8px;
+    font-size: clamp(1.5rem, 3.4vw, 2rem);
+    line-height: 1.2;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: #fff;
+  }
+  .cta-copy p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.78);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .btn {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    height: 46px;
+    padding: 0 22px;
+    border-radius: 23px;
+    background: var(--md-primary);
+    color: var(--md-on-primary);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.22);
+    transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease), filter 0.16s var(--ease);
+  }
+  .btn:hover {
+    color: var(--md-on-primary);
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  }
+  .btn:active { transform: translateY(0) scale(0.99); }
+  .btn svg { width: 18px; height: 18px; }
+  .btn.light { background: #fff; color: #004255; }
+
+  .footer-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    margin-top: 28px;
+    padding-top: 22px;
+    border-top: 1px solid var(--hairline-soft);
+    color: var(--md-outline);
+    font-size: 12px;
+    line-height: 1.6;
+  }
+  .footer-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--md-on-surface-variant);
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .footer-brand .logo { width: 28px; height: 28px; border-radius: 9px; box-shadow: none; }
+  .footer-brand .logo svg { width: 16px; height: 16px; }
+  .footer-links { display: inline-flex; flex-wrap: wrap; gap: 18px; }
+  .footer-links a { color: var(--md-on-surface-variant); font-size: 12px; }
+  .footer-links a:hover { color: var(--md-primary); }
+
+  .fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 40;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 18px;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    box-shadow: var(--shadow-2);
+    transition: transform 0.18s var(--ease), background-color 0.18s var(--ease);
+  }
+  .fab:hover {
+    background: #006c86;
+    color: #fff;
+    transform: translateY(-2px);
+  }
+  .fab svg { width: 24px; height: 24px; }
+
+  /* ---------- responsive ---------- */
+
+  @media (max-width: 1227px) {
+    .lay {
+      grid-template-columns: minmax(0, 860px);
+      justify-content: center;
+      gap: 16px;
+      padding-top: 28px;
+    }
+    .toc { display: none; }
+    .toc-mobile { display: block; }
+    .hero-card { grid-template-columns: minmax(0, 1fr) 260px; }
+  }
+
+  @media (max-width: 900px) {
+    .hero-card {
+      grid-template-columns: 1fr;
+      gap: 20px;
+      min-height: 0;
+    }
+    .hero-art { display: none; }
+    .stats { grid-template-columns: 1fr; gap: 10px; }
+    .stat {
+      flex-direction: row;
+      align-items: center;
+      gap: 14px;
+      min-height: 0;
+      padding: 16px 18px;
+    }
+    .stat-icon { width: 42px; height: 42px; border-radius: 13px; }
+    .stat-value { order: 3; margin: 0 0 0 auto; font-size: 24px; }
+    .stat-label { order: 2; margin: 0; font-size: 14px; opacity: 0.92; }
+    .stat::after { right: -58px; top: -60px; width: 130px; height: 130px; }
+  }
+
+  @media (max-width: 760px) {
+    body { background-attachment: scroll; }
+    .wrap { width: calc(100% - 32px); }
+    .appbar-inner { min-height: 64px; gap: 10px; }
+    .brand { font-size: 17px; gap: 10px; }
+    .brand-tag { display: none; }
+    .logo { width: 38px; height: 38px; border-radius: 12px; }
+    .appbar .nav-btn { display: none; }
+    .hero { padding-top: 20px; }
+    .hero-card { border-radius: 26px; padding: 26px 22px; }
+    h1 { font-size: clamp(2.45rem, 12vw, 3.4rem); margin-top: 16px; }
+    .lede { font-size: 15.5px; }
+    .hero-chips { margin-top: 20px; gap: 6px; }
+    .chip { height: 30px; font-size: 11px; padding: 0 10px; }
+    .stats { margin-top: 12px; }
+    .lay { padding-top: 20px; }
+    .summary-card, .policy-card { border-radius: 22px; padding: 20px 18px; }
+    .summary-top { gap: 13px; margin-bottom: 16px; }
+    .summary-icon { width: 44px; height: 44px; border-radius: 14px; }
+    .summary-list { grid-template-columns: 1fr; gap: 10px; }
+    .summary-list li { font-size: 13.5px; }
+    .policy-head { gap: 12px; margin-bottom: 15px; }
+    .section-icon { width: 42px; height: 42px; border-radius: 13px; }
+    .section-icon svg { width: 22px; height: 22px; }
+    .policy-head h2 { font-size: 1.2rem; }
+    .sec-overline { font-size: 9.5px; }
+    .doc-body > p { font-size: 15px; }
+    .doc-body li { font-size: 14.5px; }
+    .never-grid { grid-template-columns: 1fr; gap: 8px; }
+    .flow { grid-template-columns: 1fr; gap: 10px; }
+    .flow li:not(:last-child)::after {
+      content: "↓";
+      right: auto;
+      left: 50%;
+      top: auto;
+      bottom: -17px;
+      transform: translateX(-50%);
+      width: 22px;
+      height: 22px;
+      font-size: 13px;
+    }
+    .compare { grid-template-columns: 1fr; }
+    .rows > div { grid-template-columns: 1fr; gap: 4px; padding: 12px 0; }
+    .note { padding: 15px 16px 15px 48px; font-size: 13.5px; }
+    .note::before { left: 15px; top: 15px; width: 20px; height: 20px; }
+    .table-wrap { overflow: visible; }
+    table { display: block; min-width: 0; }
+    thead { display: none; }
+    tbody { display: block; }
+    tbody tr {
+      display: block;
+      padding: 14px 16px;
+      border-top: 1px solid var(--hairline-soft);
+    }
+    tbody tr:first-child { border-top: 0; }
+    tbody td { display: block; padding: 0; border: 0; }
+    tbody td + td { margin-top: 10px; }
+    tbody td::before {
+      content: attr(data-label);
+      display: block;
+      margin-bottom: 3px;
+      font-size: 9.5px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--md-outline);
+    }
+    tbody td:first-child { font-size: 15px; font-weight: 600; line-height: 1.45; }
+    table code { white-space: normal; }
+    .cta-card { flex-direction: column; align-items: flex-start; gap: 22px; padding: 26px 22px; border-radius: 24px; }
+    .btn { width: 100%; }
+    .site-footer { padding-bottom: 88px; }
+    .footer-bar { flex-direction: column; align-items: flex-start; }
+    .fab { right: 16px; bottom: 16px; width: 52px; height: 52px; border-radius: 16px; }
+  }
+
+  @media (max-width: 420px) {
+    .toc-mobile-grid { grid-template-columns: 1fr; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  @media print {
+    :root { color-scheme: light; }
+    body {
+      background: #fff;
+      color: #111;
+      font-size: 11pt;
+    }
+    body::before { display: none; }
+    .appbar, .toc, .toc-mobile, .fab, .hero-art, .btn { display: none !important; }
+    .wrap { width: 100%; }
+    .hero { padding: 0 0 14px; }
+    .hero-card, .cta-card {
+      display: block;
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #ccc;
+      box-shadow: none;
+      padding: 18px;
+    }
+    .hero-card::before, .cta-card::before { display: none; }
+    h1, .lede, .cta-copy h2, .cta-copy p, .overline, .chip { color: #000 !important; }
+    .overline, .chip { background: #f2f2f2 !important; border-color: #ccc !important; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
+    .stat { background: #fff !important; color: #000 !important; border: 1px solid #ccc; box-shadow: none; }
+    .stat::after { display: none; }
+    .stat-icon { background: #f2f2f2; color: #000; }
+    .lay { display: block; padding: 18px 0 0; }
+    .summary-card, .policy-card {
+      background: #fff !important;
+      color: #000 !important;
+      border: 1px solid #ddd;
+      box-shadow: none;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+    .summary-card h2, .policy-head h2, .doc-body strong, .rows dt, .compare h3 { color: #000 !important; }
+    .doc-body > p, .doc-body li, .rows dd, .summary-list li, .never-grid li { color: #222 !important; }
+    .doc-body h3, .sec-overline, .kicker { color: #0b5d78 !important; }
+    .section-icon, .summary-icon { background: #eef6f9 !important; color: #0b5d78 !important; }
+    .summary-list li::before { background: #eef6f9; color: #0b5d78; }
+    .note { background: #f5f5f5 !important; color: #222 !important; }
+    .note::before { background: #0b5d78; color: #fff; }
+    .table-wrap { overflow: visible; border: 1px solid #ccc; background: #fff; }
+    table { display: table; min-width: 0; font-size: 9.5pt; }
+    thead { display: table-header-group; }
+    tbody { display: table-row-group; }
+    tbody tr { display: table-row; padding: 0; border: 0; }
+    tbody td { display: table-cell; padding: 6px 9px; border: 1px solid #ddd; }
+    tbody td + td { margin-top: 0; }
+    tbody td::before { display: none; }
+    thead th { background: #f2f2f2; color: #000; border: 1px solid #ccc; }
+    .flow { grid-template-columns: repeat(4, 1fr); }
+    .flow li { background: #f7f7f7; color: #000; }
+    .flow li::after { display: none; }
+    .flow .step-title { color: #000; }
+    .flow .step-body { color: #333; }
+    .compare > div { background: #f7f7f7 !important; color: #000 !important; }
+    .compare > div.can { background: #eef6f9 !important; }
+    .compare li, .compare h3 { color: #000 !important; }
+    .never-grid li::before { background: #fdecea; }
+    .never-grid li::after { color: #b00020; }
+    a { color: #000; text-decoration: underline; }
+    .policy-card, .summary-card { break-inside: auto; }
+    .cta-card { margin-top: 16px; }
+  }
+
+  /* specificity guards for list components inside policy bodies */
+  .doc-body .flow { padding-left: 0; list-style: none; }
+  .doc-body .never-grid { padding-left: 0; }
+  .doc-body .compare ul { padding-left: 18px; margin: 0; }
+  .doc-body .compare li { margin: 6px 0; }
+
+</style>
+</head>
+<body id="top">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="appbar">
+  <div class="wrap appbar-inner">
+    <a class="brand" href="#top" aria-label="VPNSky privacy policy">
+      <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5.2v5.6c0 5 3.4 9.7 8 11.2 4.6-1.5 8-6.2 8-11.2V5.2L12 2Zm-1.8 14.6-4-4 1.5-1.5 2.5 2.5 5.2-5.2 1.5 1.5-6.7 6.7Z"/></svg></span>
+      VPNSky
+      <span class="brand-tag">Privacy</span>
+    </a>
+    <nav aria-label="Primary">
+      <a class="nav-btn" href="#main" aria-current="page">Privacy policy</a>
+      <a class="nav-btn" href="#security">Security</a>
+      <a class="nav-btn" href="#contact">Contact</a>
+      <a class="icon-btn" href="&#109;ailto:daniootsutsuki&#64;gmail&#46;com" aria-label="Email the developer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4.2 7 7.8 5.6L19.8 7"/></svg></a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-card">
+        <div class="hero-content">
+          <span class="overline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5.5 5.9v5.2c0 4.2 2.7 7.9 6.5 9.3 3.8-1.4 6.5-5.1 6.5-9.3V5.9L12 3Z"/><path d="m9.2 11.7 2 2 3.7-3.9"/></svg> VPNSky · Android VPN</span>
+          <h1>Privacy Policy</h1>
+          <p class="lede">
+            VPNSky is a WireGuard VPN client that keeps your traffic encrypted between your Android
+            device and a server operated by the developer. This page explains exactly what the app and
+            that server handle, why we need it, and what we will never collect.
+          </p>
+          <div class="hero-chips">
+            <span class="chip"><span class="dot" aria-hidden="true"></span>Effective 20 Oct 2026</span>
+            <span class="chip"><b>Android</b>&nbsp;7.0+</span>
+            <span class="chip"><b>App</b>&nbsp;1.0</span>
+            <span class="chip"><b>Package</b>&nbsp;com.wingsheep.vpnsky</span>
+          </div>
+        </div>
+        <div class="hero-art" aria-hidden="true">
+          <div class="orb">
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 1.8 3.8 5.2v5.5c0 5.2 3.5 10 8.2 11.5 4.7-1.5 8.2-6.3 8.2-11.5V5.2L12 1.8Zm-2.2 15.4-4-4 1.5-1.5 2.5 2.5 5.5-5.5 1.5 1.5-7 7Z"/></svg>
+            <span class="orb-label"><span class="dot"></span>WireGuard · TLS</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats" role="group" aria-label="Privacy summary">
+        <div class="stat primary">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.7-3.4 3.7-5.6 7.2-5.6s6.5 2.2 7.2 5.6"/></svg></span>
+          <div class="stat-value">0</div>
+          <div class="stat-label">Accounts required</div>
+        </div>
+        <div class="stat secondary">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 6.3A9.6 9.6 0 0 1 12 6.2c4.5 0 7.9 3.2 9.2 5.8a12.4 12.4 0 0 1-2.6 3.2"/><path d="M6.2 7.6A13 13 0 0 0 2.8 12C4.1 14.6 7.5 17.8 12 17.8c1.3 0 2.5-.2 3.6-.7"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg></span>
+          <div class="stat-value">None</div>
+          <div class="stat-label">Traffic content logged</div>
+        </div>
+        <div class="stat tertiary">
+          <span class="stat-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6.2l9.8 9.8-6.2 6.2L4 10.2V4Z"/><circle cx="8" cy="8" r="1.2"/><path d="M4.5 19.5l15-15"/></svg></span>
+          <div class="stat-value">None</div>
+          <div class="stat-label">Personal data sold</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap lay">
+    <aside class="toc" aria-label="On this page">
+      <div class="toc-head">
+        <span class="toc-title">On this page</span>
+        <span class="toc-count">14 sections</span>
+      </div>
+      <div class="toc-group"><p class="toc-label">Essentials</p><a href="#who"><span class="num">01</span>Who we are</a><a href="#data"><span class="num">02</span>Data we handle</a><a href="#never"><span class="num">03</span>What we never collect</a><a href="#tunnel"><span class="num">04</span>How the tunnel works</a></div><div class="toc-group"><p class="toc-label">Data practices</p><a href="#use"><span class="num">05</span>How we use data</a><a href="#share"><span class="num">06</span>How we share data</a><a href="#retention"><span class="num">07</span>Retention</a></div><div class="toc-group"><p class="toc-label">Trust & control</p><a href="#security"><span class="num">08</span>Security</a><a href="#rights"><span class="num">09</span>Your rights</a><a href="#children"><span class="num">10</span>Children's privacy</a><a href="#transfers"><span class="num">11</span>International transfers</a></div><div class="toc-group"><p class="toc-label">Details</p><a href="#changes"><span class="num">12</span>Policy changes</a><a href="#permissions"><span class="num">13</span>Android permissions</a><a href="#contact"><span class="num">14</span>Contact</a></div>
+      <div class="toc-foot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 1.9"/></svg><span><strong>Last updated</strong>20 October 2026</span></div>
+    </aside>
+
+    <article class="article">
+      <details class="toc-mobile">
+        <summary>
+          <svg class="lead" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="4.5" cy="18" r="1.1" fill="currentColor" stroke="none"/></svg>
+          <span>On this page</span>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </summary>
+        <div class="toc-mobile-grid">
+          <a href="#who"><span class="num">01</span><span>Who we are</span></a><a href="#data"><span class="num">02</span><span>Data we handle</span></a><a href="#never"><span class="num">03</span><span>What we never collect</span></a><a href="#tunnel"><span class="num">04</span><span>How the tunnel works</span></a><a href="#use"><span class="num">05</span><span>How we use data</span></a><a href="#share"><span class="num">06</span><span>How we share data</span></a><a href="#retention"><span class="num">07</span><span>Retention</span></a><a href="#security"><span class="num">08</span><span>Security</span></a><a href="#rights"><span class="num">09</span><span>Your rights</span></a><a href="#children"><span class="num">10</span><span>Children's privacy</span></a><a href="#transfers"><span class="num">11</span><span>International transfers</span></a><a href="#changes"><span class="num">12</span><span>Policy changes</span></a><a href="#permissions"><span class="num">13</span><span>Android permissions</span></a><a href="#contact"><span class="num">14</span><span>Contact</span></a>
+        </div>
+      </details>
+
+      <section class="summary-card" aria-labelledby="summary-title">
+        <div class="summary-top">
+          <span class="summary-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5.2 5.9v5.3c0 4.3 2.8 8 6.8 9.4 4-1.4 6.8-5.1 6.8-9.4V5.9L12 3Z"/><path d="m9 11.7 2.1 2.1 4-4.2"/></svg></span>
+          <div>
+            <span class="kicker">The short version</span>
+            <h2 id="summary-title">Private by default, minimal by design.</h2>
+          </div>
+        </div>
+        <ul class="summary-list">
+          <li>Your <strong>traffic is encrypted</strong> and its contents are never inspected or logged.</li>
+          <li>There are <strong>no accounts, ads, analytics, or trackers</strong> in VPNSky.</li>
+          <li>Your WireGuard <strong>private key is generated on your phone</strong> and never leaves it.</li>
+          <li>We keep only what the tunnel needs: a <strong>public key mapped to a private tunnel address</strong>.</li>
+        </ul>
+      </section>
+
+      <div class="policy-list">
+        <section class="policy-card tone-primary" id="who">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M4.8 20c.7-3.4 3.7-5.6 7.2-5.6s6.5 2.2 7.2 5.6"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 01</span>
+              <h2>Who we are and what this covers</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          VPNSky is an Android VPN client developed and operated by an independent developer based in
+          Indonesia (“VPNSky”, “we”, “us”, “our”). For the limited data described in this policy, the
+          developer is the data controller.
+        </p>
+        <p>
+          This policy applies to the <strong>VPNSky Android application</strong> (package
+          <code>com.wingsheep.vpnsky</code>), the registration service the app contacts to obtain a
+          tunnel address, and this policy page. It does not cover Google Play, the websites and apps
+          you reach through the tunnel, or any other third-party service. Those services have their
+          own privacy policies.
+        </p>
+        <p>
+          VPNSky is not a social network and has no user accounts. We do not ask for your name, email
+          address, phone number, or any other identifier in order to use the app.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="data">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5.6" rx="7" ry="3"/><path d="M5 5.6v6.2c0 1.7 3.1 3 7 3s7-1.3 7-3V5.6"/><path d="M5 11.8v6.2c0 1.7 3.1 3 7 3s7-1.3 7-3v-6.2"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 02</span>
+              <h2>Data we handle</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          VPNSky is built around data minimisation. There is no profile and no advertising ID, and
+          most of what the app needs never leaves your device. This table is the complete list of
+          data the app and our service process.
+        </p>
+        <div class="table-wrap" role="region" aria-label="Data we handle" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Data</th>
+                <th scope="col">What it is and where it lives</th>
+                <th scope="col">Why we need it</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Data"><strong>WireGuard key pair</strong></td>
+                <td data-label="What it is and where it lives">
+                  A Curve25519 public/private key pair created on your device the first time you
+                  connect. The <strong>private key stays in the app's private storage</strong>; only
+                  the public key is sent to the VPNSky registry.
+                </td>
+                <td data-label="Why we need it">Authenticates your installation to the server and lets the server assign it a tunnel address.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Tunnel address</strong></td>
+                <td data-label="What it is and where it lives">
+                  A private IPv4 address (for example <code>10.0.0.5/32</code>) assigned to your
+                  public key. Stored in the registry's state file and used by the app for the
+                  connection.
+                </td>
+                <td data-label="Why we need it">Routes your packets through the encrypted tunnel.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Connection metadata</strong></td>
+                <td data-label="What it is and where it lives">
+                  Your public IP address as seen by the VPN server, your public key, handshake
+                  timestamps, and byte counters. Visible to the server while you are connected; the
+                  registry records only the last registration time.
+                </td>
+                <td data-label="Why we need it">Operate the tunnel, keep it stable, prevent abuse, and troubleshoot faults.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Configuration requests</strong></td>
+                <td data-label="What it is and where it lives">
+                  The app fetches server settings (endpoint, server public key, DNS, routing policy)
+                  from Firebase Remote Config. Google processes technical request data such as your IP
+                  address, app version, and a Firebase installation identifier.
+                </td>
+                <td data-label="Why we need it">Deliver current server settings without shipping them in the app package.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Server location lookup</strong></td>
+                <td data-label="What it is and where it lives">
+                  After the tunnel is up, the app may resolve the VPN server's hostname with Google
+                  Public DNS and look up the server IP's city/country with ipwho.is. Only the
+                  <strong>server's address</strong> is sent — never your IP address, device ID, or a
+                  query about you.
+                </td>
+                <td data-label="Why we need it">Show a readable server location in the app.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Access logs</strong></td>
+                <td data-label="What it is and where it lives">
+                  Our web infrastructure keeps standard access logs (IP address, time, requested
+                  path, user agent) for requests to the registry endpoint and to this page.
+                </td>
+                <td data-label="Why we need it">Security, rate limiting, and debugging. Logs rotate automatically.</td>
+              </tr>
+              <tr>
+                <td data-label="Data"><strong>Support messages</strong></td>
+                <td data-label="What it is and where it lives">
+                  If you email us, we receive your email address and whatever you choose to include.
+                </td>
+                <td data-label="Why we need it">To answer your question or request.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          We do not combine any of the data above with data from other services, and we do not use it
+          to build a profile of you.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="never">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="m6 6 12 12"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 03</span>
+              <h2>What we never collect</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          The app requests only the permissions a VPN needs. It cannot access, and does not ask for,
+          any of the following:
+        </p>
+        <ul class="never-grid">
+          <li>Your name, email address, phone number, postal address, or government ID — there is no account.</li>
+          <li>Contacts, call logs, SMS/MMS, calendar, or other personal files.</li>
+          <li>Photos, videos, documents, or clipboard contents.</li>
+          <li>Precise or approximate location, including background location.</li>
+          <li>Camera, microphone, or screen contents.</li>
+          <li>Advertising ID or any identifier used to track you across apps and websites.</li>
+          <li>Browsing history, DNS query contents, or the contents of your network traffic.</li>
+          <li>Your installed-app list, keystrokes, device serial number, or IMEI.</li>
+          <li>Health, biometric, financial, or payment data — there are no in-app purchases.</li>
+          <li>Crash reports or diagnostics uploaded automatically — no crash-reporting SDK is included.</li>
+        </ul>
+        <div class="note">
+          <strong>No advertising, analytics, attribution, or crash-reporting SDK ships in VPNSky.</strong>
+          Nothing described in this policy is sold, rented, or shared with data brokers.
+        </div>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="tunnel">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5.5" cy="6" r="2.2"/><circle cx="18.5" cy="18" r="2.2"/><path d="M7.7 6h3.8a3 3 0 0 1 0 6h-1.5a3 3 0 0 0 0 6h4.3"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 04</span>
+              <h2>How the VPN works — and what each side can see</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          A connection is a short exchange followed by an encrypted tunnel. This is the whole flight
+          path:
+        </p>
+        <ol class="flow">
+          <li>
+            <span class="step-n">STEP 01</span>
+            <span class="step-title">Key on device</span>
+            <span class="step-body">The app generates a fresh key pair in Android's private storage. The private key never leaves your phone.</span>
+          </li>
+          <li>
+            <span class="step-n">STEP 02</span>
+            <span class="step-title">Register</span>
+            <span class="step-body">Over HTTPS, the app sends only the public key to the VPNSky registry, which maps it to a free tunnel address.</span>
+          </li>
+          <li>
+            <span class="step-n">STEP 03</span>
+            <span class="step-title">Tunnel up</span>
+            <span class="step-body">The app builds a WireGuard configuration and asks Android for VPN permission. Packets are encrypted before they leave the device.</span>
+          </li>
+          <li>
+            <span class="step-n">STEP 04</span>
+            <span class="step-title">Egress</span>
+            <span class="step-body">Our server decrypts inside the tunnel, forwards traffic to the internet, and returns replies encrypted to your device.</span>
+          </li>
+        </ol>
+
+        <div class="compare">
+          <div class="can">
+            <h3><span aria-hidden="true">◉</span> What we can see</h3>
+            <ul>
+              <li>The connection metadata needed to run WireGuard: your IP address, public key, handshake timing, and byte counts.</li>
+              <li>At the network layer, the destination addresses of packets leaving the server.</li>
+              <li>Standard access-log entries when the app contacts our registry.</li>
+            </ul>
+          </div>
+          <div>
+            <h3><span aria-hidden="true">◎</span> What we never see</h3>
+            <ul>
+              <li>The contents of your TLS/HTTPS sessions — exactly as on any network.</li>
+              <li>Your WireGuard private key.</li>
+              <li>Your identity: there is no account, name, or email attached to the tunnel.</li>
+              <li>Traffic from apps that never send data through the tunnel.</li>
+            </ul>
+          </div>
+        </div>
+
+        <p>
+          We do not log, store, inspect, or analyse browsing activity, DNS queries, or payload
+          contents. The VPN server forwards packets; it does not keep a history of them.
+        </p>
+        <div class="note">
+          <strong>Full tunnel by default.</strong> The app routes all IPv4 and IPv6 traffic
+          (<code>0.0.0.0/0</code>, <code>::/0</code>) through the tunnel unless the operator narrows
+          the policy. DNS requests travel inside the tunnel to the resolver configured for the
+          service — currently Cloudflare's <code>1.1.1.1</code> by default — so your mobile network
+          does not see them.
+        </div>
+          </div>
+        </section>
+
+        <section class="policy-card tone-secondary" id="use">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 05</span>
+              <h2>How we use data</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>We use the limited data described above only to run and protect the service:</p>
+        <div class="table-wrap" role="region" aria-label="Purposes and legal bases" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Purpose</th>
+                <th scope="col">Data involved</th>
+                <th scope="col">Legal basis (EEA/UK GDPR)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Purpose">Provide the VPN service</td>
+                <td data-label="Data involved">Public key, tunnel address, configuration</td>
+                <td data-label="Legal basis (EEA/UK GDPR)">Performance of a contract — Art. 6(1)(b)</td>
+              </tr>
+              <tr>
+                <td data-label="Purpose">Keep the service secure and available</td>
+                <td data-label="Data involved">Connection metadata, access logs</td>
+                <td data-label="Legal basis (EEA/UK GDPR)">Legitimate interests in preventing abuse and attacks — Art. 6(1)(f)</td>
+              </tr>
+              <tr>
+                <td data-label="Purpose">Answer support requests</td>
+                <td data-label="Data involved">Whatever you send us</td>
+                <td data-label="Legal basis (EEA/UK GDPR)">Legitimate interests / steps before a contract — Art. 6(1)(b)/(f)</td>
+              </tr>
+              <tr>
+                <td data-label="Purpose">Comply with applicable law</td>
+                <td data-label="Data involved">The minimum necessary</td>
+                <td data-label="Legal basis (EEA/UK GDPR)">Legal obligation — Art. 6(1)(c)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          We do not use data for advertising, profiling, automated decision-making, or marketing. We
+          do not send marketing email, and we do not sell or share personal information for
+          cross-context behavioural advertising.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-secondary" id="share">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="m8.2 10.9 7.6-3.8"/><path d="m8.2 13.1 7.6 3.8"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 06</span>
+              <h2>How we share data</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          We do not sell, rent, or trade personal data. We share only what is listed below, with
+          providers that help us run the service:
+        </p>
+        <div class="table-wrap" role="region" aria-label="Recipients of data" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Recipient</th>
+                <th scope="col">Purpose</th>
+                <th scope="col">Data involved</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Recipient"><strong>Google LLC</strong> — Firebase Remote Config</td>
+                <td data-label="Purpose">Delivers server configuration to the app</td>
+                <td data-label="Data involved">Technical request data including IP address, app version, and a Firebase installation ID. Covered by Google's privacy policy and standard contractual clauses.</td>
+              </tr>
+              <tr>
+                <td data-label="Recipient"><strong>Google LLC</strong> — Public DNS (<code>dns.google</code>)</td>
+                <td data-label="Purpose">Resolves the VPN server's hostname</td>
+                <td data-label="Data involved">The VPN server's hostname only — not your IP address or device data.</td>
+              </tr>
+              <tr>
+                <td data-label="Recipient"><strong>ipwho.is</strong></td>
+                <td data-label="Purpose">Looks up the VPN server's city and country</td>
+                <td data-label="Data involved">The VPN server's IP address only.</td>
+              </tr>
+              <tr>
+                <td data-label="Recipient"><strong>Cloudflare, Inc.</strong></td>
+                <td data-label="Purpose">Default DNS resolver for the tunnel and delivery network for this page</td>
+                <td data-label="Data involved">DNS queries from the VPN server, and standard web request logs when you open this page. We add no analytics scripts.</td>
+              </tr>
+              <tr>
+                <td data-label="Recipient"><strong>Hosting and network providers</strong></td>
+                <td data-label="Purpose">Host the VPN endpoint, registry, and website</td>
+                <td data-label="Data involved">Encrypted traffic, connection metadata, and access logs, under data-processing terms.</td>
+              </tr>
+              <tr>
+                <td data-label="Recipient"><strong>Authorities</strong></td>
+                <td data-label="Purpose">Respond to valid legal process or protect rights and safety</td>
+                <td data-label="Data involved">The minimum necessary. Where lawful, we will tell you before disclosing.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          No advertising network, data broker, analytics provider, or social network receives data
+          from VPNSky. If the project is ever transferred to another operator, data would move with
+          it only under this policy, and we would announce the change here first.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-secondary" id="retention">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.2V12l3.2 1.9"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 07</span>
+              <h2>How long we keep data</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>We keep data only as long as it is needed for the purpose it was collected for.</p>
+        <dl class="rows">
+          <div>
+            <dt>WireGuard private key</dt>
+            <dd>Until you clear the app's data, reinstall the app, rotate the key, or uninstall. It exists only on your device.</dd>
+          </div>
+          <div>
+            <dt>Registry mapping</dt>
+            <dd>
+              The public key ↔ tunnel address mapping and its last registration time are kept while
+              your address is allocated. When the address pool is full, the least recently active
+              peer is recycled and its mapping is replaced. We do not keep a history of past sessions.
+            </dd>
+          </div>
+          <div>
+            <dt>WireGuard runtime counters</dt>
+            <dd>Held in the server's memory only, reset when the tunnel or service restarts, and never archived.</dd>
+          </div>
+          <div>
+            <dt>Access logs</dt>
+            <dd>Rotated automatically and kept for a short operational period — typically no more than 30 days.</dd>
+          </div>
+          <div>
+            <dt>Support email</dt>
+            <dd>Kept while we handle your request and for a reasonable follow-up period, then deleted. You can ask us to delete it sooner.</dd>
+          </div>
+          <div>
+            <dt>Traffic contents, browsing history, DNS logs</dt>
+            <dd><strong>Never stored.</strong></dd>
+          </div>
+        </dl>
+        <p>
+          If you ask us to remove your tunnel record, we delete the public key and assigned address.
+          Your device simply registers a new key the next time you connect.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-tertiary" id="security">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 5.2 5.9v5.3c0 4.3 2.8 8 6.8 9.4 4-1.4 6.8-5.1 6.8-9.4V5.9L12 3Z"/><path d="m9 11.7 2.1 2.1 4-4.2"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 08</span>
+              <h2>How we protect data</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>Security is the product, so it gets the same scrutiny as the tunnel itself.</p>
+        <ul>
+          <li><strong>Modern cryptography.</strong> WireGuard uses ChaCha20-Poly1305, Curve25519, BLAKE2s, and HKDF. Each installation has its own keys; no shared secret is shipped in the app package.</li>
+          <li><strong>Keys stay on the device.</strong> The private key lives in Android app-private storage, is excluded from Android backups (<code>android:allowBackup="false"</code>), and is never logged or sent to the registry.</li>
+          <li><strong>Encrypted in transit.</strong> Registration and configuration requests use HTTPS/TLS.</li>
+          <li><strong>A small server surface.</strong> The registry runs as an unprivileged service behind a narrow sudo rule, requires a service token, and its code is root-owned. Deployments use a restricted helper rather than broad shell access.</li>
+          <li><strong>Least privilege on Android.</strong> The app requests only internet, network-state, and VPN foreground-service permissions — nothing else.</li>
+          <li><strong>Tunnel lifecycle.</strong> The VPN service starts only when you connect and stops when you disconnect, with a visible ongoing notification while it runs.</li>
+        </ul>
+        <p>
+          No system is perfectly secure. If you find a vulnerability, please email us. We welcome
+          coordinated disclosure and will credit researchers who ask to be credited.
+        </p>
+        <div class="note">
+          <strong>We will never ask for your private key, your password, or payment details.</strong>
+          VPNSky has no payments and no passwords. Anyone who asks for them is not us.
+        </div>
+          </div>
+        </section>
+
+        <section class="policy-card tone-tertiary" id="rights">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4.5v15"/><path d="M5.5 8h13"/><path d="M6 8 3.4 14h5.2L6 8Z"/><path d="M18 8l-2.6 6h5.2L18 8Z"/><path d="M8.5 20h7"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 09</span>
+              <h2>Your choices and rights</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<h3>No account to manage</h3>
+        <p>
+          VPNSky has no login. Uninstalling the app removes the private key and local settings from
+          your device. Clearing the app's data has the same effect on the key.
+        </p>
+
+        <h3>Remove your tunnel record</h3>
+        <p>
+          You can ask us to delete the registry mapping for your installation. Email us with the
+          <strong>tunnel address shown in the app while connected</strong> (or the approximate date
+          you last connected) and we will remove it. No other proof of identity is required, because
+          no identity was ever collected.
+        </p>
+
+        <h3>Your legal rights</h3>
+        <p>Depending on where you live, you may have the right to:</p>
+        <ul>
+          <li>access the personal data we hold about you, and receive a copy;</li>
+          <li>correct inaccurate data;</li>
+          <li>delete your data (the right to erasure);</li>
+          <li>restrict or object to processing;</li>
+          <li>withdraw consent where processing is based on consent — none of our current processing depends on consent; and</li>
+          <li>complain to a data protection authority.</li>
+        </ul>
+        <p>
+          If you are in the <strong>EEA or UK</strong>, these rights come from the GDPR and UK GDPR.
+          If you are in <strong>California</strong>, the CCPA/CPRA gives you the rights to know,
+          delete, correct, and opt out of sale or sharing; <strong>we do not sell or share personal
+          information</strong>, and we will not discriminate against you for exercising your rights.
+          If you are in <strong>Indonesia</strong>, equivalent rights apply under the Personal Data
+          Protection Law (UU 27/2022).
+        </p>
+        <p>
+          To exercise any right, email <a href="&#109;ailto:daniootsutsuki&#64;gmail&#46;com">daniootsutsuki&#64;gmail&#46;com</a>.
+          We may ask for the minimum information needed to locate your record — usually just the
+          tunnel address. We respond within 30 days (45 days for California requests) and will tell
+          you if we need more time.
+        </p>
+
+        <h3>Device controls</h3>
+        <p>
+          You can disconnect or revoke the VPN at any time from the app, or from Android
+          <em>Settings → Network &amp; internet → VPN</em>. Android will show a persistent notification
+          while the tunnel is active, and you can stop it from there as well.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-tertiary" id="children">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M8.7 10h.01M15.3 10h.01"/><path d="M8.6 14.2c.9 1.3 2 1.9 3.4 1.9s2.5-.6 3.4-1.9"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 10</span>
+              <h2>Children's privacy</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          VPNSky is a general-purpose privacy tool and is not directed to children under 13 (or
+          under 16 in the EEA/UK where local law sets a higher age). We do not knowingly collect
+          personal data from children: there is no account, no advertising, and no profiling.
+        </p>
+        <p>
+          If you believe a child has used the app and you want the tunnel record removed, contact us
+          and we will delete it. Parents and guardians can also uninstall the app to remove all local
+          data immediately.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-tertiary" id="transfers">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="8.6"/><path d="M3.4 12h17.2"/><path d="M12 3.4c2.4 2.4 3.6 5.3 3.6 8.6s-1.2 6.2-3.6 8.6c-2.4-2.4-3.6-5.3-3.6-8.6S9.6 5.8 12 3.4Z"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 11</span>
+              <h2>International transfers</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          VPNSky's server and service providers may be located outside your country. The VPN endpoint
+          currently in use is shown in the app while you are connected. Google processes Firebase and
+          DNS requests through its global infrastructure.
+        </p>
+        <p>
+          Where data leaves the EEA, UK, or Switzerland, we rely on adequacy decisions or standard
+          contractual clauses (including the UK Addendum) with our providers. The data involved is
+          limited to technical identifiers and connection metadata; there is no account data to
+          transfer.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="changes">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0 1 12.7-5.4L20 9.3"/><path d="M20 4.5v4.8h-4.8"/><path d="M19.5 12a7.5 7.5 0 0 1-12.7 5.4L4 14.7"/><path d="M4 19.5v-4.8h4.8"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 12</span>
+              <h2>Changes to this policy</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          We may update this policy as the app or the law changes. The date at the top of this page
+          always reflects the current version. For material changes, we will highlight what changed
+          here and, where appropriate, in the app or its release notes before the change takes
+          effect.
+        </p>
+        <p>
+          Continued use of VPNSky after the effective date means you accept the updated policy.
+          Previous versions are available on request.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="permissions">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.8" width="10" height="18.4" rx="2.4"/><path d="M10.5 18.4h3"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 13</span>
+              <h2>Android permissions</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          This is every permission VPNSky declares, and why. You can review them yourself in Android
+          <em>Settings → Apps → VPNSky → Permissions</em>.
+        </p>
+        <div class="table-wrap" role="region" aria-label="Android permissions" tabindex="0">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Permission</th>
+                <th scope="col">Why it is needed</th>
+                <th scope="col">Data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td data-label="Permission"><code>INTERNET</code></td>
+                <td data-label="Why it is needed">Contact the configuration service, registry, and VPN endpoint.</td>
+                <td data-label="Data">No personal data by itself.</td>
+              </tr>
+              <tr>
+                <td data-label="Permission"><code>ACCESS_NETWORK_STATE</code></td>
+                <td data-label="Why it is needed">Detect connectivity so failures can be explained clearly.</td>
+                <td data-label="Data">Network status only; stays on the device.</td>
+              </tr>
+              <tr>
+                <td data-label="Permission"><code>BIND_VPN_SERVICE</code></td>
+                <td data-label="Why it is needed">Required by Android for any app that implements a VPN.</td>
+                <td data-label="Data">Declares the VPN service; no user data.</td>
+              </tr>
+              <tr>
+                <td data-label="Permission"><code>FOREGROUND_SERVICE</code><br><code>FOREGROUND_SERVICE_VPN</code></td>
+                <td data-label="Why it is needed">Keep the tunnel running while you use other apps, with a visible notification.</td>
+                <td data-label="Data">Connection status shown in the notification.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>
+          VPNSky does not request location, contacts, storage, camera, microphone, phone, SMS, or
+          notification-listener permissions.
+        </p>
+          </div>
+        </section>
+
+        <section class="policy-card tone-primary" id="contact">
+          <header class="policy-head">
+            <span class="section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4.2 7 7.8 5.6L19.8 7"/></svg></span>
+            <div>
+              <span class="sec-overline">Section 14</span>
+              <h2>Contact</h2>
+            </div>
+          </header>
+          <div class="doc-body">
+<p>
+          Questions about this policy, data requests, and security reports all go to the same place:
+        </p>
+        <p>
+          <a href="&#109;ailto:daniootsutsuki&#64;gmail&#46;com">daniootsutsuki&#64;gmail&#46;com</a>
+        </p>
+        <p>
+          We aim to reply within 5 business days and to resolve data requests within 30 days. This
+          policy applies to VPNSky for Android (package <code>com.wingsheep.vpnsky</code>) and was
+          last updated on <strong>20 October 2026</strong>.
+        </p>
+          </div>
+        </section>
+      </div>
+    </article>
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="cta-card">
+      <div class="cta-copy">
+        <span class="kicker">Your data, your call</span>
+        <h2>Questions about your privacy?</h2>
+        <p>Write to us. A human reads every message — no tickets, no bots.</p>
+      </div>
+      <a class="btn light" href="&#109;ailto:daniootsutsuki&#64;gmail&#46;com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4.2 7 7.8 5.6L19.8 7"/></svg>
+        Email the developer
+      </a>
+    </div>
+    <div class="footer-bar">
+      <span class="footer-brand">
+        <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5.2v5.6c0 5 3.4 9.7 8 11.2 4.6-1.5 8-6.2 8-11.2V5.2L12 2Zm-1.8 14.6-4-4 1.5-1.5 2.5 2.5 5.2-5.2 1.5 1.5-6.7 6.7Z"/></svg></span>
+        <span class="footer-name">VPNSky</span>
+      </span>
+      <span>© 2026 VPNSky · com.wingsheep.vpnsky</span>
+      <span class="footer-links">
+        <a href="#top">Back to top</a>
+        <a href="https://www.dream-team.works">dream-team.works</a>
+      </span>
+    </div>
+  </div>
+</footer>
+
+<a class="fab" href="#top" aria-label="Back to top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg></a>
+</body>
+</html>

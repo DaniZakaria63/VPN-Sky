@@ -34,6 +34,21 @@ const stateEmitter = native
 
 export const isVpnSupported = native !== null;
 
+const STATES: ReadonlySet<string> = new Set<VpnState>([
+  'Disconnected',
+  'Connecting',
+  'Connected',
+  'Error',
+]);
+
+/**
+ * Native state is an untyped string over the bridge. Never let an unknown value reach the state
+ * machine: a typo or a library enum addition would otherwise be coerced into a real UI state.
+ */
+function toVpnState(value: unknown): VpnState | null {
+  return typeof value === 'string' && STATES.has(value) ? (value as VpnState) : null;
+}
+
 export function getVersion(): Promise<string> {
   if (!native) {
     return Promise.resolve('Unavailable (iOS)');
@@ -73,7 +88,7 @@ export function getState(): Promise<VpnState | null> {
   if (!native) {
     return Promise.resolve(null);
   }
-  return native.getState() as Promise<VpnState>;
+  return native.getState().then(toVpnState);
 }
 
 export function getStatistics(): Promise<VpnStatistics | null> {
@@ -108,8 +123,11 @@ export function onVpnStateChange(listener: (state: VpnState) => void): () => voi
   if (!stateEmitter) {
     return () => {};
   }
-  const sub = stateEmitter.addListener(STATE_EVENT, payload => {
-    listener(payload.state as VpnState);
+  const sub = stateEmitter.addListener(STATE_EVENT, (payload: { state?: unknown }) => {
+    const state = toVpnState(payload?.state);
+    if (state) {
+      listener(state);
+    }
   });
   return () => sub.remove();
 }

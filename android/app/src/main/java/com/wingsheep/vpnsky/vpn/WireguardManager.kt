@@ -7,21 +7,45 @@ import com.wireguard.android.backend.GoBackend
 import com.wireguard.android.backend.Statistics
 import com.wireguard.android.backend.Tunnel
 import com.wireguard.config.Config
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 
+/**
+ * Owns the GoBackend, the single logical tunnel, and the one thread allowed to touch them.
+ *
+ * `GoBackend.setState()` blocks until the tunnel transitions and `getStatistics()` crosses the
+ * binder, so none of that work may run on the JS/bridge or UI thread. Exposing only
+ * callback-based operations (instead of public blocking methods) makes that confinement a
+ * property of this class rather than something every caller has to remember.
+ *
+ * Serialising all tunnel work on one daemon thread also removes races between a connect and a
+ * concurrent disconnect. Operations submitted after [shutdown] fail their callback instead of
+ * throwing from an executor that no longer accepts work.
+ */
 class WireguardManager(private val context: Context) {
+    private val executor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "vpnsky-tunnel").apply { isDaemon = true }
+    }
+
+    @Volatile
     private var backend: GoBackend? = null
+
+    @Volatile
     private var tunnel: WireguardTunnel? = null
 
     val isInitialized: Boolean get() = backend != null && tunnel != null
 
+    @Synchronized
     fun initialize(tunnelName: String = "VPNSky") {
-        if (backend != null) return
+        if (backend != null && tunnel != null) return
         backend = GoBackend(context)
         tunnel = WireguardTunnel(tunnelName).apply {
             onStateChanged = { }
         }
     }
 
+    @Synchronized
     fun setOnStateChanged(listener: (Tunnel.State) -> Unit) {
         tunnel?.onStateChanged = listener
     }
@@ -30,37 +54,61 @@ class WireguardManager(private val context: Context) {
         return VpnService.prepare(context) == null
     }
 
-    @Synchronized
-    fun connect(config: Config): Result<Tunnel.State> = runCatching {
-        val b = backend ?: throw IllegalStateException("Backend not initialized")
-        val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
-        b.setState(t, Tunnel.State.UP, config)
+    fun connect(config: Config, callback: (Result<Tunnel.State>) -> Unit) {
+        submit(callback) {
+            val b = backend ?: throw IllegalStateException("Backend not initialized")
+            val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
+            b.setState(t, Tunnel.State.UP, config)
+        }
     }
 
-    @Synchronized
-    fun disconnect(): Result<Tunnel.State> = runCatching {
-        val b = backend ?: throw IllegalStateException("Backend not initialized")
-        val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
-        b.setState(t, Tunnel.State.DOWN, null)
+    fun disconnect(callback: (Result<Tunnel.State>) -> Unit) {
+        submit(callback) {
+            val b = backend ?: throw IllegalStateException("Backend not initialized")
+            val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
+            b.setState(t, Tunnel.State.DOWN, null)
+        }
     }
 
-    @Synchronized
-    fun getState(): Tunnel.State? {
-        val b = backend ?: return null
-        val t = tunnel ?: return null
-        return b.getState(t)
+    fun getState(callback: (Tunnel.State?) -> Unit) {
+        submit(
+            callback = { result -> callback(result.getOrNull()) },
+            block = {
+                val b = backend
+                val t = tunnel
+                if (b == null || t == null) null else b.getState(t)
+            },
+        )
     }
 
-    @Synchronized
-    fun getStatistics(): Statistics? {
-        val b = backend ?: return null
-        val t = tunnel ?: return null
-        return b.getStatistics(t)
+    fun getStatistics(callback: (Statistics?) -> Unit) {
+        submit(
+            callback = { result -> callback(result.getOrNull()) },
+            block = {
+                val b = backend
+                val t = tunnel
+                if (b == null || t == null) null else b.getStatistics(t)
+            },
+        )
     }
 
-    fun getVersion(): String? = runCatching {
-        backend?.getVersion()
-    }.getOrNull()
+    fun getVersion(callback: (String?) -> Unit) {
+        submit({ result -> callback(result.getOrNull()) }, { backend?.getVersion() })
+    }
+
+    fun shutdown() {
+        executor.shutdown()
+    }
+
+    private fun <T> submit(callback: (Result<T>) -> Unit, block: () -> T) {
+        try {
+            executor.execute {
+                callback(runCatching(block))
+            }
+        } catch (e: RejectedExecutionException) {
+            callback(Result.failure(e))
+        }
+    }
 
     companion object {
         fun getBackendExceptionReason(e: Throwable): String {

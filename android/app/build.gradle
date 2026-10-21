@@ -56,9 +56,34 @@ react {
 }
 
 /**
- * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
+ * Set this to true to run R8 (code shrinking + obfuscation) on Release builds.
+ * Rules that the RN bridge, Firebase and WireGuard need live in proguard-rules.pro.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
+
+/**
+ * A release artifact signed with the debug certificate is rejected by Google Play. Rather than
+ * silently fall back, only use debug signing when a caller explicitly opts in for a local
+ * sideload build; CI passes no such flag and therefore fails on missing credentials.
+ */
+def allowDebugReleaseSigning = project.hasProperty("allowDebugReleaseSigning")
+def hasReleaseSigning = ["KEYSTORE_PASSWORD", "KEY_ALIAS", "KEY_PASSWORD"].every {
+    System.getenv(it)
+}
+if (!hasReleaseSigning && !allowDebugReleaseSigning) {
+    gradle.taskGraph.whenReady { graph ->
+        def releaseTask = graph.allTasks.find {
+            ["assembleRelease", "bundleRelease", "packageRelease", "signReleaseBundle"].contains(it.name)
+        }
+        if (releaseTask != null) {
+            throw new GradleException(
+                "Release signing credentials are missing (KEYSTORE_PASSWORD, KEY_ALIAS, " +
+                    "KEY_PASSWORD). Set them to produce a Play-valid artifact, or pass " +
+                    "-PallowDebugReleaseSigning=true for a local, sideload-only build."
+            )
+        }
+    }
+}
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -105,8 +130,9 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig (System.getenv("KEYSTORE_PASSWORD") ? signingConfigs.release : signingConfigs.debug)
+            signingConfig (hasReleaseSigning ? signingConfigs.release : signingConfigs.debug)
             minifyEnabled enableProguardInReleaseBuilds
+            shrinkResources false
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
     }

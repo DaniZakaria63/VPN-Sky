@@ -10,12 +10,16 @@
     "emulator": "bash scripts/run_emulator.sh",
     "emulator:app": "bash scripts/run_emulator.sh -a",
     "lan": "export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk}; export PATH=\"$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/tools/bin:$PATH\"; react-native start --host 0.0.0.0",
-    "build:apk": "export JAVA_HOME=${JAVA_HOME:-/home/dani/opt/android-studio/jbr} && export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk} && cd android && ./gradlew :app:assembleRelease -x lintVitalAnalyzeRelease -x lintVitalRelease -x lintVitalReportRelease",
+    "build:apk": "export JAVA_HOME=${JAVA_HOME:-/home/dani/opt/android-studio/jbr} && export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk} && cd android && ./gradlew :app:assembleRelease -PallowDebugReleaseSigning=true -x lintVitalAnalyzeRelease -x lintVitalRelease -x lintVitalReportRelease",
     "install:phone": "export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk} && $ANDROID_HOME/platform-tools/adb install -r android/app/build/outputs/apk/release/app-release.apk",
     "build:install": "npm run build:apk && npm run install:phone",
     "ios": "react-native run-ios",
     "lint": "eslint App.tsx src __tests__",
-    "test": "jest"
+    "test": "jest",
+    "audit:safety": "node scripts/jev_safety_audit.mjs",
+    "audit:store": "node scripts/jev_store_listing_audit.mjs",
+    "build:apk:arm64": "export JAVA_HOME=${JAVA_HOME:-/home/dani/opt/android-studio/jbr} && export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk} && cd android && ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a -PallowDebugReleaseSigning=true -x lintVitalAnalyzeRelease -x lintVitalRelease -x lintVitalReportRelease",
+    "build:apk:signed": "bash scripts/build_release_signed.sh"
   },
   "dependencies": {
     "@react-native-firebase/app": "^26.0.0",

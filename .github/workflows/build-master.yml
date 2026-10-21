@@ -1,14 +1,24 @@
 name: Build Master
 
+# PRs: debug APK + typecheck/lint/tests (no secrets needed).
+# master: the same R8-minified, upload-key-signed APK/AAB that the tag release workflow produces.
 on:
   push:
     branches: [master]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+concurrency:
+  group: build-master-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: write
 
 jobs:
-  master:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
 
     steps:
       - uses: actions/checkout@v4
@@ -21,29 +31,122 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: |
+            platforms;android-36
+            build-tools;36.0.0
+
+      # React Native 0.86 supports Node ^20.19.4 || ^22.13.0. setup-node's "20" resolves to the
+      # latest 20.x, which is below Metro's floor; 22 is the supported LTS line here.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test -- --runInBand
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      # A timestamp-derived versionCode is monotonic for both master CI builds and tag releases,
+      # so any artifact can be uploaded to Play without a downgrade. versionName stays readable.
       - name: Set version
-        run: echo "APP_VERSION_NAME=0.0.${{ github.run_number }}" >> "$GITHUB_ENV"
+        run: |
+          CODE=$(( $(date +%s) - 1735689600 ))
+          if [ "$CODE" -lt 1 ]; then CODE=1; fi
+          echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "APP_VERSION_NAME=0.0.${{ github.run_number }}-pr" >> "$GITHUB_ENV"
+          else
+            echo "APP_VERSION_NAME=1.0.${{ github.run_number }}-ci" >> "$GITHUB_ENV"
+          fi
 
-      - name: Build debug APK
+      - name: Validate signing secrets
+        if: github.event_name != 'pull_request'
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          for name in KEYSTORE_FILE KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::$name is not set. Add the four signing secrets described in AGENTS.md."
+              exit 1
+            fi
+          done
+
+      - name: Decode keystore
+        if: github.event_name != 'pull_request'
+        env:
+          KEYSTORE_FILE: ${{ secrets.KEYSTORE_FILE }}
+        run: |
+          mkdir -p android/keystore
+          printf '%s' "$KEYSTORE_FILE" | base64 -d > android/keystore/vpnsky.jks
+          test -s android/keystore/vpnsky.jks
+
+      - name: Verify keystore credentials
+        if: github.event_name != 'pull_request'
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        run: |
+          keytool -list -keystore android/keystore/vpnsky.jks \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+
+      - name: Build signed release
+        if: github.event_name != 'pull_request'
+        working-directory: android
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          ./gradlew bundleRelease assembleRelease \
+            -PappVersionName="$APP_VERSION_NAME" \
+            -PappVersionCode="$APP_VERSION_CODE"
+
+      - name: Build debug APK (pull request)
+        if: github.event_name == 'pull_request'
         working-directory: android
         run: |
           ./gradlew assembleDebug \
-            -PappVersionCode=${{ github.run_number }} \
-            -PappVersionName=$APP_VERSION_NAME
+            -PappVersionName="$APP_VERSION_NAME" \
+            -PappVersionCode="$APP_VERSION_CODE"
+
+      - name: Upload signed APK and AAB
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vpnsky-signed-${{ github.run_number }}
+          path: |
+            android/app/build/outputs/apk/release/app-release.apk
+            android/app/build/outputs/bundle/release/app-release.aab
+          if-no-files-found: error
+
+      - name: Upload debug APK
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vpnsky-debug-${{ github.run_number }}
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
 
       - name: Create GitHub Release
+        if: github.event_name == 'push'
         uses: ncipollo/release-action@v1
         with:
           tag: release-${{ github.run_number }}
@@ -53,5 +156,7 @@ jobs:
             ## CI Build ${{ env.APP_VERSION_NAME }}
 
             **Commit:** ${{ github.sha }}
-          artifacts: app/build/outputs/apk/debug/app-debug.apk
+            **versionCode:** ${{ env.APP_VERSION_CODE }}
+          artifacts: android/app/build/outputs/apk/release/app-release.apk,android/app/build/outputs/bundle/release/app-release.aab
+          allowUpdates: true
           generateReleaseNotes: true

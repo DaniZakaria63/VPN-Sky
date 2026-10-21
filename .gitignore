@@ -103,3 +103,7 @@ ios/DerivedData/
 
 # Kotlin
 **.kotlin_module
+
+# Generated audit artifacts
+artifacts/
+docs/store-listing/

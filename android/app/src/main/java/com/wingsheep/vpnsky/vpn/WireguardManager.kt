@@ -20,10 +20,14 @@ import java.util.concurrent.RejectedExecutionException
  * property of this class rather than something every caller has to remember.
  *
  * Serialising all tunnel work on one daemon thread also removes races between a connect and a
- * concurrent disconnect. Operations submitted after [shutdown] fail their callback instead of
- * throwing from an executor that no longer accepts work.
+ * concurrent disconnect.
+ *
+ * This is a process-wide singleton on purpose. Swiping the task away destroys the React context
+ * and its native modules but must not destroy the tunnel; the foreground keep-alive service keeps
+ * the process alive, and a recreated module must reattach to the same manager. Never shut the
+ * executor down while the process lives.
  */
-class WireguardManager(private val context: Context) {
+class WireguardManager private constructor(private val context: Context) {
     private val executor: ExecutorService = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "vpnsky-tunnel").apply { isDaemon = true }
     }
@@ -33,6 +37,10 @@ class WireguardManager(private val context: Context) {
 
     @Volatile
     private var tunnel: WireguardTunnel? = null
+
+    /** Tunnel address from the active config, e.g. 10.0.0.12/32. Survives React-context recreation. */
+    @Volatile
+    private var assignedAddress: String? = null
 
     val isInitialized: Boolean get() = backend != null && tunnel != null
 
@@ -55,10 +63,13 @@ class WireguardManager(private val context: Context) {
     }
 
     fun connect(config: Config, callback: (Result<Tunnel.State>) -> Unit) {
+        val address = config.getInterface().getAddresses().firstOrNull()?.toString()
         submit(callback) {
             val b = backend ?: throw IllegalStateException("Backend not initialized")
             val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
-            b.setState(t, Tunnel.State.UP, config)
+            val state = b.setState(t, Tunnel.State.UP, config)
+            assignedAddress = address
+            state
         }
     }
 
@@ -66,8 +77,14 @@ class WireguardManager(private val context: Context) {
         submit(callback) {
             val b = backend ?: throw IllegalStateException("Backend not initialized")
             val t = tunnel ?: throw IllegalStateException("Tunnel not initialized")
-            b.setState(t, Tunnel.State.DOWN, null)
+            val state = b.setState(t, Tunnel.State.DOWN, null)
+            assignedAddress = null
+            state
         }
+    }
+
+    fun getAssignedAddress(callback: (String?) -> Unit) {
+        callback(assignedAddress)
     }
 
     fun getState(callback: (Tunnel.State?) -> Unit) {
@@ -96,10 +113,6 @@ class WireguardManager(private val context: Context) {
         submit({ result -> callback(result.getOrNull()) }, { backend?.getVersion() })
     }
 
-    fun shutdown() {
-        executor.shutdown()
-    }
-
     private fun <T> submit(callback: (Result<T>) -> Unit, block: () -> T) {
         try {
             executor.execute {
@@ -111,6 +124,14 @@ class WireguardManager(private val context: Context) {
     }
 
     companion object {
+        @Volatile
+        private var instance: WireguardManager? = null
+
+        fun getInstance(context: Context): WireguardManager =
+            instance ?: synchronized(this) {
+                instance ?: WireguardManager(context.applicationContext).also { instance = it }
+            }
+
         fun getBackendExceptionReason(e: Throwable): String {
             return when (e) {
                 is BackendException -> e.reason.toString()

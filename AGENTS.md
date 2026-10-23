@@ -13,7 +13,7 @@ Android VPN client app rebuilt as a **React Native** project. WireGuard tunnel r
 | `src/native/vpn.ts` | bridge to native module `VpnConnectManager`; validates state payloads |
 | `src/theme.ts` | Material palette (ported from Compose `Color.kt`/`Theme.kt`) |
 | `scripts/jev_safety_audit.mjs` | TypeSafe/Jev thread- and runtime-safety report (`npm run audit:safety`) |
-| `android/app/.../vpn/` | **Android-only native module**: `VpnSkyVpnModule`, `WireguardManager`, `WireguardKeys`, `WireguardTunnel`, `VpnPackage` |
+| `android/app/.../vpn/` | **Android-only native module**: `VpnSkyVpnModule`, `WireguardManager`, `WireguardKeys`, `WireguardTunnel`, `VpnForegroundService`, `VpnActionReceiver`, `VpnPackage` |
 | `ios/` | iOS shell (no VPN; UI shows "unsupported", `isVpnSupported === false`) |
 
 ## Stack
@@ -67,12 +67,22 @@ CI lives in `.github/workflows/`:
 
 - `lint.yml`: pull requests into `master` or `dev` run `tsc`, ESLint, and Jest only. It never builds
   or signs, so a dev PR cannot publish anything.
+- `build-release.yml`: **`v*` tags or manual dispatch**. It is the only workflow that publishes to
+  Play. Dispatch computes the next semver from the latest tag/`android/version.properties`, bumps
+  `version.properties`, `package.json` and `package-lock.json`, commits the bump, builds, uploads
+  the AAB, verifies the versionCode is on the requested track, then creates the tag and GitHub
+  release. Pushing a `v1.2.3` tag is the recovery path and builds that exact version.
 - `build-master.yml`: **push to `master` only**. It builds the R8-minified, upload-key-signed APK
-  and AAB and attaches them to a GitHub release. It does not upload to Play.
-- `build-release.yml`: **`v*` tags only**. It builds the signed AAB/APK, uploads the AAB to the Play
-  internal track, and attaches both to a GitHub release.
-- Both build workflows use a timestamp-derived `versionCode` (seconds since 2025-01-01) so master
-  builds and tag releases stay monotonic and either can be uploaded without a Play downgrade.
+  and AAB and attaches them to a GitHub release. It does not upload to Play and shows the version as
+  `<committed version>-ci.<run number>`.
+- Versioning: `android/version.properties` is the single source of truth (Gradle reads it).
+  `scripts/version.mjs` computes the next semver and a `versionCode` of
+  `max(seconds since 2025-01-01, previous code + 1)`, so Play uploads always increase even when a
+  run is retried. `scripts/play_verify.mjs` reads the Play track back after upload.
+- Optional repository variables: `PLAY_TRACK` (`internal` by default) and `PLAY_RELEASE_STATUS`
+  (`completed` by default) control tag-triggered releases. Manual dispatch has its own selectors.
+- The dispatch path pushes the bump commit with the repository `GITHUB_TOKEN`; `master` must allow
+  GitHub Actions to push (or give the bot a bypass), otherwise the run fails before uploading.
 
 Repository secrets (Settings → Secrets and variables → Actions):
 
@@ -82,14 +92,14 @@ Repository secrets (Settings → Secrets and variables → Actions):
 | `KEYSTORE_PASSWORD` | store password for that JKS |
 | `KEY_ALIAS` | `vpnsky` (the only alias in the JKS) |
 | `KEY_PASSWORD` | key password for that alias |
-| `PLAY_SERVICE_ACCOUNT_JSON` | Play Console service-account JSON (tag releases only) |
+| `PLAY_SERVICE_ACCOUNT_JSON` | Play Console service-account JSON (release workflow only) |
 
 Never commit the keystore, its base64, or the passwords; `android/keystore/` is gitignored and the
 local copy of the credentials belongs in `~/.config/vpnsky/signing.env` (mode 600).
 
 ## Native module API (`VpnConnectManager`)
 
-`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getStatistics` (`{rxBytes,txBytes}`), `ensureClientKey` (generates/loads a persistent Curve25519 keypair from app-private `vpnsky_client.key`; private key never ships), `rotateClientKey` (rotation helper; deletes persisted key), `generateKeyPair` (one-shot ephemeral, for diagnostics). Emits `onVpnStateChange` via `NativeEventEmitter`.
+`src/native/vpn.ts` wraps `NativeModules.VpnConnectManager`. Promises only (no callbacks). Methods: `initialize` (implicit via lazy), `getVersion`, `isVpnAuthorized`, `requestVpnPermission` (launches `VpnService.prepare` + `startActivityForResult`, resolves granted bool), `connect(conf)`, `disconnect`, `getState`, `getAssignedAddress` (tunnel address recovered after task removal), `getStatistics` (`{rxBytes,txBytes}`), `ensureClientKey` (generates/loads a persistent Curve25519 keypair from app-private `vpnsky_client.key`; private key never ships), `rotateClientKey` (rotation helper; deletes persisted key), `generateKeyPair` (one-shot ephemeral, for diagnostics). Emits `onVpnStateChange` via `NativeEventEmitter`.
 
 `@react-native-firebase/remote-config` is initialized via `src/config.ts`, which fetches `BASE_API_URL` (`base_api_url`), and WireGuard server params (`vpn_dns`, `vpn_allowed_ips`, `vpn_server_public_key`, `vpn_endpoint`, `vpn_persistent_keepalive`). The **client private key is generated and persisted** at runtime via `ensureClientKey`; the client registers its per-install public key to `<base_api_url>/register` (header `X-Registry-Token: <registry_token>`) and is handed a unique tunnel address — no address/IP is baked in. Defaults are embedded for offline boots; no secret material (no WG private keys, no PSK) is ever shipped.
 
@@ -108,6 +118,15 @@ Connection flow (JS, `useVpn.ts` + `src/config.ts`):
   `vpnsky-keys` thread; the two domains share no mutable state.
 - `WireguardTunnel.onStateChanged` is `@Volatile` because the backend invokes it from its own
   thread.
+- `WireguardManager` is a process-wide singleton. React-context teardown (`invalidate()`, task
+  removal) must never stop the tunnel; a recreated module reattaches to the same manager, and
+  `getAssignedAddress` lets the UI recover the tunnel IP.
+- `VpnForegroundService` is the keep-alive: a `specialUse` foreground service with an ongoing
+  notification, started before connect and stopped on disconnect/tunnel DOWN. The WireGuard
+  library's own VpnService is only a background service, which OEM task cleaners kill. The
+  notification action is handled by `VpnActionReceiver` without needing the React context.
+- The Play Console submission must declare the `specialUse` foreground-service type; Android 13+
+  requests notification permission when connecting.
 - Every promise settles exactly once: a shut-down executor rejects (`VPN_UNAVAILABLE`), a permission
   dialog is settled by `onActivityResult`, by `invalidate()`, or by a launch failure.
 - `GoBackend$VpnService` declared in `android/app/src/main/AndroidManifest.xml` with `BIND_VPN_SERVICE`.

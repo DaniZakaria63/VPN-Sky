@@ -4,7 +4,8 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.BIND_VPN_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_VPN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
       android:name=".MainApplication"
@@ -32,10 +33,30 @@
       <service
         android:name="com.wireguard.android.backend.GoBackend$VpnService"
         android:permission="android.permission.BIND_VPN_SERVICE"
-        android:exported="false">
+        android:exported="false"
+        android:stopWithTask="false">
         <intent-filter>
           <action android:name="android.net.VpnService" />
         </intent-filter>
       </service>
+
+      <!--
+        Keeps the VPN process alive after the task is swiped away. The WireGuard tunnel service
+        itself is only a background service, which OEM task cleaners kill; this foreground service
+        raises the process importance and shows the required ongoing notification.
+      -->
+      <service
+        android:name=".vpn.VpnForegroundService"
+        android:exported="false"
+        android:stopWithTask="false"
+        android:foregroundServiceType="specialUse">
+        <property
+          android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+          android:value="Keeps the WireGuard VPN tunnel connected while the app is in the background" />
+      </service>
+
+      <receiver
+        android:name=".vpn.VpnActionReceiver"
+        android:exported="false" />
     </application>
 </manifest>

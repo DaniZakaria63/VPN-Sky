@@ -14,6 +14,7 @@ interface VpnNativeModule {
   connect(conf: string): Promise<string>;
   disconnect(): Promise<string>;
   getState(): Promise<string>;
+  getAssignedAddress(): Promise<string>;
   getStatistics(): Promise<VpnStatistics>;
   ensureClientKey(): Promise<{ privateKey: string; publicKey: string }>;
   generateKeyPair(): Promise<{ privateKey: string; publicKey: string }>;
@@ -89,6 +90,13 @@ export function getState(): Promise<VpnState | null> {
     return Promise.resolve(null);
   }
   return native.getState().then(toVpnState);
+}
+
+export function getAssignedAddress(): Promise<string | null> {
+  if (!native) {
+    return Promise.resolve(null);
+  }
+  return native.getAssignedAddress().then(address => (address ? address : null));
 }
 
 export function getStatistics(): Promise<VpnStatistics | null> {

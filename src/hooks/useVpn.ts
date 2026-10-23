@@ -5,6 +5,7 @@ import { lookupServerLocation } from '../geo';
 import {
   connect as nativeConnect,
   disconnect as nativeDisconnect,
+  getAssignedAddress,
   getState,
   getStatistics,
   getVersion,
@@ -165,6 +166,14 @@ export function useVpn(): VpnController {
     const gen = lifecycleRef.current;
     const seq = actionSeqRef.current;
     const state = await getState().catch(() => null);
+    if (state === 'Connected' && !sessionRef.current) {
+      // A tunnel created before the React context was recreated has no JS-side session. Ask the
+      // native singleton for the address from the live config instead of showing a blank IP.
+      const address = await getAssignedAddress().catch(() => null);
+      if (address) {
+        sessionRef.current = { address, serverEndpoint: '', serverLocation: '' };
+      }
+    }
     if (!mountedRef.current || lifecycleRef.current !== gen || actionSeqRef.current !== seq) {
       return;
     }
@@ -437,10 +446,16 @@ export function useVpn(): VpnController {
   // assigned address in that case).
   const baseSession =
     status.kind === VpnStateKind.Connected
-      ? status.session ?? (configEndpoints ? { address: '', ...configEndpoints } : null)
+      ? {
+          address: status.session?.address || '',
+          serverEndpoint:
+            status.session?.serverEndpoint || configEndpoints?.serverEndpoint || '',
+          serverLocation:
+            status.session?.serverLocation || configEndpoints?.serverLocation || '',
+        }
       : null;
   const resolvedEndpoint = baseSession?.serverEndpoint ?? '';
-  const configuredLocation = baseSession?.serverLocation || configEndpoints?.serverLocation || '';
+  const configuredLocation = baseSession?.serverLocation ?? '';
   const wantGeoLookup = !!resolvedEndpoint && !configuredLocation;
 
   // Only runs once the tunnel is up, so the lookup leaves through the VPN

@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">VPNSky</string>
+    <string name="vpn_notification_channel">VPN connection</string>
+    <string name="vpn_notification_channel_description">Shown while the VPN tunnel is active</string>
+    <string name="vpn_notification_connecting">VPNSky is connecting</string>
+    <string name="vpn_notification_connected">VPNSky is connected</string>
+    <string name="vpn_notification_text">Tap to open VPNSky</string>
+    <string name="vpn_notification_disconnect">Disconnect</string>
 </resources>

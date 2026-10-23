@@ -62,6 +62,22 @@ react {
 def enableProguardInReleaseBuilds = true
 
 /**
+ * `android/version.properties` is the single source of truth for the Android version. CI overrides
+ * it with -PappVersionName/-PappVersionCode after bumping the file, while local builds, IDE runs
+ * and `npm run build:apk:signed` fall back to the committed values.
+ */
+def versionProperties = new Properties()
+def versionPropertiesFile = rootProject.file("version.properties")
+if (versionPropertiesFile.exists()) {
+    versionPropertiesFile.withInputStream { versionProperties.load(it) }
+}
+def defaultVersionName = versionProperties.getProperty("VERSION_NAME", "1.0.0")
+def defaultVersionCode = versionProperties.getProperty("VERSION_CODE", "1").toInteger()
+def resolvedVersionName = project.findProperty("appVersionName")?.toString() ?: defaultVersionName
+def resolvedVersionCode =
+    project.findProperty("appVersionCode")?.toString()?.toInteger() ?: defaultVersionCode
+
+/**
  * A release artifact signed with the debug certificate is rejected by Google Play. Rather than
  * silently fall back, only use debug signing when a caller explicitly opts in for a local
  * sideload build; CI passes no such flag and therefore fails on missing credentials.
@@ -108,8 +124,8 @@ android {
         applicationId "com.wingsheep.vpnsky"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode project.findProperty("appVersionCode")?.toString()?.toInteger() ?: 1
-        versionName project.findProperty("appVersionName")?.toString() ?: "1.0"
+        versionCode resolvedVersionCode
+        versionName resolvedVersionName
     }
     signingConfigs {
         debug {
@@ -140,6 +156,13 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
         coreLibraryDesugaringEnabled true
+    }
+}
+
+/** `./gradlew :app:printVersion` mirrors what CI will put in the manifest. */
+tasks.register("printVersion") {
+    doLast {
+        println("versionName=${resolvedVersionName} versionCode=${resolvedVersionCode}")
     }
 }
 

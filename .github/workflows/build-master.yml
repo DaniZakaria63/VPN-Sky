@@ -54,16 +54,20 @@ jobs:
       - name: Unit tests
         run: npm test -- --runInBand
 
+      - name: Check version files
+        run: node scripts/version.mjs check
+
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      # Timestamp-derived versionCode, monotonic across master CI and tag releases.
+      # CI snapshots are not uploaded to Play, but they still need a unique, increasing versionCode
+      # and a versionName that is clearly a pre-release of the committed version.
       - name: Set version
         run: |
-          CODE=$(( $(date +%s) - 1735689600 ))
-          if [ "$CODE" -lt 1 ]; then CODE=1; fi
+          BASE_NAME="$(node scripts/version.mjs name)"
+          CODE="$(node scripts/version.mjs code)"
           echo "APP_VERSION_CODE=$CODE" >> "$GITHUB_ENV"
-          echo "APP_VERSION_NAME=1.0.${{ github.run_number }}-ci" >> "$GITHUB_ENV"
+          echo "APP_VERSION_NAME=${BASE_NAME}-ci.${{ github.run_number }}" >> "$GITHUB_ENV"
 
       - name: Validate signing secrets
         env:

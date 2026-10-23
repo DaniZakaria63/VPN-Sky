@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Check version files
+        run: node scripts/version.mjs check
+
       - name: Typecheck
         run: npx tsc --noEmit
 

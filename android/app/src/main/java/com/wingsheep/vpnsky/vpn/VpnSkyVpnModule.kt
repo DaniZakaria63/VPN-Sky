@@ -1,8 +1,11 @@
 package com.wingsheep.vpnsky.vpn
 
+import android.Manifest
 import android.app.Activity
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.VpnService
+import android.os.Build
 import com.facebook.react.bridge.ActivityEventListener
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
@@ -39,14 +42,15 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     companion object {
         const val NAME = "VpnConnectManager"
         const val REQUEST_VPN_PERMISSION = 9317
+        const val REQUEST_NOTIFICATION_PERMISSION = 9318
         const val EVENT_ON_STATE_CHANGE = "onVpnStateChange"
         private const val KEY_FILE_NAME = "vpnsky_client.key"
     }
 
     private val vpnManagerDelegate = lazy {
-        WireguardManager(reactContext.applicationContext).apply {
+        WireguardManager.getInstance(reactContext.applicationContext).apply {
             initialize()
-            setOnStateChanged { state -> emitState(state) }
+            setOnStateChanged { state -> onBackendState(state) }
         }
     }
     private val vpnManager: WireguardManager by vpnManagerDelegate
@@ -77,11 +81,11 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
             permissionPromise.also { permissionPromise = null }
         }
         orphan?.resolve(false)
-        // Let queued work finish so no caller is left waiting; new work is rejected instead.
+        // Keep key work from outliving this React context, but do NOT stop the tunnel or the
+        // foreground keep-alive service: invalidate() also runs when the task is swiped away, and
+        // the VPN must survive that. WireguardManager is a process singleton so a recreated module
+        // reattaches to the live tunnel.
         keyExecutor.shutdown()
-        if (vpnManagerDelegate.isInitialized()) {
-            vpnManagerDelegate.value.shutdown()
-        }
     }
 
     @ReactMethod
@@ -169,10 +173,20 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
             promise.reject("VPN_CONFIG_INVALID", "WireGuard config has no peer")
             return
         }
+        // Raise the process to foreground before the blocking setState(UP); this is what keeps the
+        // tunnel alive if the user swipes the task away while the tunnel is coming up.
+        requestNotificationPermissionIfNeeded()
+        VpnForegroundService.start(reactContext.applicationContext, connected = false)
         vpnManager.connect(config) { result ->
             result.fold(
-                onSuccess = { promise.resolve(stateToValue(it)) },
-                onFailure = { rejectBackend(promise, it) },
+                onSuccess = { state ->
+                    VpnForegroundService.update(reactContext.applicationContext, state == Tunnel.State.UP)
+                    promise.resolve(stateToValue(state))
+                },
+                onFailure = {
+                    VpnForegroundService.stop(reactContext.applicationContext)
+                    rejectBackend(promise, it)
+                },
             )
         }
     }
@@ -181,7 +195,10 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     fun disconnect(promise: Promise) {
         vpnManager.disconnect { result ->
             result.fold(
-                onSuccess = { promise.resolve(stateToValue(it)) },
+                onSuccess = {
+                    VpnForegroundService.stop(reactContext.applicationContext)
+                    promise.resolve(stateToValue(it))
+                },
                 onFailure = { rejectBackend(promise, it) },
             )
         }
@@ -190,6 +207,11 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     @ReactMethod
     fun getState(promise: Promise) {
         vpnManager.getState { state -> promise.resolve(stateToValue(state)) }
+    }
+
+    @ReactMethod
+    fun getAssignedAddress(promise: Promise) {
+        vpnManager.getAssignedAddress { address -> promise.resolve(address ?: "") }
     }
 
     @ReactMethod
@@ -230,6 +252,32 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
     }
 
     override fun onNewIntent(intent: Intent) = Unit
+
+    /**
+     * Android 13+ hides the foreground-service notification without this permission. Requesting
+     * it is best-effort: the FGS still runs and keeps the tunnel alive when it is denied.
+     */
+    private fun requestNotificationPermissionIfNeeded() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+            return
+        }
+        val activity = reactContext.currentActivity ?: return
+        if (activity.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+        reactContext.runOnUiQueueThread {
+            try {
+                activity.requestPermissions(
+                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                    REQUEST_NOTIFICATION_PERMISSION,
+                )
+            } catch (_: Exception) {
+                // Best effort; connect must not fail because the prompt could not be shown.
+            }
+        }
+    }
 
     private fun clearPermissionPromise(promise: Promise) {
         synchronized(permissionLock) {
@@ -312,6 +360,20 @@ class VpnSkyVpnModule(private val reactContext: ReactApplicationContext) :
             temp.delete()
         }
         pair
+    }
+
+    /**
+     * Single funnel for backend state changes: keep the foreground notification truthful and
+     * notify JS when a live React instance still exists. The manager outlives the module, so this
+     * may run with a stale React context; the foreground-service calls only use the app context.
+     */
+    private fun onBackendState(state: Tunnel.State) {
+        when (state) {
+            Tunnel.State.UP -> VpnForegroundService.update(reactContext.applicationContext, connected = true)
+            Tunnel.State.TOGGLE -> VpnForegroundService.update(reactContext.applicationContext, connected = false)
+            Tunnel.State.DOWN -> VpnForegroundService.stop(reactContext.applicationContext)
+        }
+        emitState(state)
     }
 
     private fun emitState(state: Tunnel.State) {

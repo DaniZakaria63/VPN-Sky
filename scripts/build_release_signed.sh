@@ -51,10 +51,8 @@ fi
 
 export JAVA_HOME="${JAVA_HOME:-/home/dani/opt/android-studio/jbr}"
 export ANDROID_HOME="${ANDROID_HOME:-/home/dani/Android/Sdk}"
-VERSION_NAME="${APP_VERSION_NAME:-1.0.0}"
-DEFAULT_CODE=$(( $(date +%s) - 1735689600 ))
-if [ "$DEFAULT_CODE" -lt 1 ]; then DEFAULT_CODE=1; fi
-VERSION_CODE="${APP_VERSION_CODE:-$DEFAULT_CODE}"
+VERSION_NAME="${APP_VERSION_NAME:-$(node "$ROOT/scripts/version.mjs" name)}"
+VERSION_CODE="${APP_VERSION_CODE:-$(node "$ROOT/scripts/version.mjs" code)}"
 
 cd "$ROOT/android"
 ./gradlew --no-daemon :app:bundleRelease :app:assembleRelease \
@@ -78,6 +76,7 @@ fi
 
 echo
 echo "Signed release built:"
+echo "  Version  $VERSION_NAME ($VERSION_CODE)"
 echo "  APK  $APK  ($(du -h "$APK" | cut -f1))"
 echo "  AAB  $AAB  ($(du -h "$AAB" | cut -f1))"
 echo

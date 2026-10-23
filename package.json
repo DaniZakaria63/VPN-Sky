@@ -1,6 +1,6 @@
 {
   "name": "VPNSky",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "react-native start",
@@ -18,6 +18,8 @@
     "test": "jest",
     "audit:safety": "node scripts/jev_safety_audit.mjs",
     "audit:store": "node scripts/jev_store_listing_audit.mjs",
+    "version:show": "node scripts/version.mjs show",
+    "version:check": "node scripts/version.mjs check",
     "build:apk:arm64": "export JAVA_HOME=${JAVA_HOME:-/home/dani/opt/android-studio/jbr} && export ANDROID_HOME=${ANDROID_HOME:-/home/dani/Android/Sdk} && cd android && ./gradlew :app:assembleRelease -PreactNativeArchitectures=arm64-v8a -PallowDebugReleaseSigning=true -x lintVitalAnalyzeRelease -x lintVitalRelease -x lintVitalReportRelease",
     "build:apk:signed": "bash scripts/build_release_signed.sh"
   },
